@@ -229,13 +229,16 @@ class Company(models.Model):
     
     def save(self, *args, **kwargs):
         if self.cik:
-            old = type(self).objects.get(cik=self.cik)
-            if not old.load and self.load:
-                # If we just flag this company for loading then
-                # flag this company's indexes for loading.
-                Index.objects.filter(
-                    company=self, attributes_loaded=True
-                ).update(attributes_loaded=False)
+            try:
+                old = type(self).objects.get(cik=self.cik)
+                if not old.load and self.load:
+                    # If we just flag this company for loading then
+                    # flag this company's indexes for loading.
+                    Index.objects.filter(
+                        company=self, attributes_loaded=True
+                    ).update(attributes_loaded=False)
+            except type(self).DoesNotExist:
+                pass
         super(Company, self).save(*args, **kwargs)
     
 class Index(models.Model):

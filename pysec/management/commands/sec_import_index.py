@@ -110,6 +110,7 @@ class Command(NoArgsCommand):
         total = len(lines)
         IndexFile.objects.filter(id=ifile.id).update(total_rows=total)
         last_status = None
+        prior_keys = set()
         for r in lines[10:]:
             i += 1
             if ifile.processed_rows and i < ifile.processed_rows:
@@ -131,6 +132,10 @@ class Command(NoArgsCommand):
             cik = int(r[74:86].strip())
             company, _ = Company.objects.get_or_create(cik=cik, defaults=dict(name=name))
             filename = r[98:].strip()
+            key = (company, dt, filename)#, year, quarter)
+            if key in prior_keys:
+                continue
+            prior_keys.add(key)
             if Index.objects.filter(company=company, date=dt, filename=filename).exists():
                 continue
             bulk_objects.append(Index(

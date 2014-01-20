@@ -168,7 +168,11 @@ class Command(BaseCommand):
                 if not end_date:
                     continue
                 namespace, _ = models.Namespace.objects.get_or_create(name=ns.strip())
-                attribute, _ = models.Attribute.objects.get_or_create(namespace=namespace, name=attr_name)
+                attribute, _ = models.Attribute.objects.get_or_create(
+                    namespace=namespace,
+                    name=attr_name,
+                    defaults=dict(load=True),
+                )
                 if not attribute.load:
                     continue
                 unit, _ = models.Unit.objects.get_or_create(name=node.attrib['unitRef'].strip())
@@ -214,6 +218,8 @@ class Command(BaseCommand):
             models.Index.objects.filter(id=ifile.id).update(attributes_loaded=True)
             
             models.Attribute.do_update()
+            
+            models.Unit.do_update()
             
             if not self.dryrun:
                 transaction.commit()

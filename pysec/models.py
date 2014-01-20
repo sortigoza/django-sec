@@ -37,8 +37,33 @@ class Unit(models.Model):
         db_index=True,
         unique=True)
     
+    true_unit = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text=_('''Points the the unit record this record duplicates.
+            Points to itself if this is the master unit.'''))
+    
+    master = models.BooleanField(
+        default=True,
+        editable=False,
+        help_text=_('If true, indicates this unit is the master referred to by duplicates.'))
+    
     def __unicode__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if self.id:
+            self.true_unit = self.true_unit or self
+            self.master = self == self.true_unit
+        super(Unit, self).save(*args, **kwargs)
+    
+    @classmethod
+    def do_update(cls, *args, **kwargs):
+        q = cls.objects.filter(true_unit__isnull=True)
+        for r in q.iterator():
+            r.save()
 
 class Attribute(models.Model):
     """
@@ -80,7 +105,7 @@ class Attribute(models.Model):
     
     @classmethod
     def do_update(cls, *args, **kwargs):
-        q = cls.objects.filter(total_values_fresh=False).only('id')
+        q = cls.objects.filter(total_values_fresh=False).only('id', 'name')
         total = q.count()
         i = 0
         for r in q.iterator():
@@ -88,8 +113,10 @@ class Attribute(models.Model):
             if not i % 100:
                 print '\rRefreshing attribute %i of %i.' % (i, total),
                 sys.stdout.flush()
+            total_values = AttributeValue.objects.filter(attribute__name=r.name).count()
             cls.objects.filter(id=r.id).update(
-                total_values=r.values.all().count(),
+                #total_values=r.values.all().count(),
+                total_values=total_values,
                 total_values_fresh=True)
         print '\rRefreshing attribute %i of %i.' % (total, total),
 
@@ -252,7 +279,7 @@ class Index(models.Model):
             # Note, filenames are not necessarily unique.
             # Filenames may be listed more than once under a different
             # form type.
-            ('company', 'form', 'date', 'filename'),
+            ('company', 'form', 'date', 'filename', 'year', 'quarter'),
         )
         index_together = (
             ('year', 'quarter'),

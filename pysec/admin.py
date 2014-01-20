@@ -23,6 +23,15 @@ class UnitAdmin(admin.ModelAdmin):
     
     list_display = (
         'name',
+        'master',
+    )
+    
+    list_filter = (
+        'master',
+    )
+    
+    readonly_fields = (
+        'master',
     )
     
     search_fields = (
@@ -37,6 +46,7 @@ class AttributeAdmin(admin.ModelAdmin):
     
     list_display = (
         'name',
+        'namespace',
         'load',
         'total_values_fresh',
         'total_values',
@@ -58,6 +68,7 @@ class AttributeAdmin(admin.ModelAdmin):
     actions = (
         'enable_load',
         'disable_load',
+        'refresh_total_values',
     )
     
     def enable_load(self, request, queryset):
@@ -68,6 +79,11 @@ class AttributeAdmin(admin.ModelAdmin):
     def disable_load(self, request, queryset):
         models.Attribute.objects.filter(id__in=queryset).update(load=False)
     disable_load.short_description = 'Disable value loading of selected %(verbose_name_plural)s'
+    
+    def refresh_total_values(self, request, queryset):
+        queryset.update(total_values_fresh=False)
+        models.Attribute.do_update()
+    refresh_total_values.short_description = 'Refresh to total values count of selected %(verbose_name_plural)s'
 
 admin.site.register(
     models.Attribute,
@@ -152,6 +168,7 @@ class CompanyAdmin(admin.ModelAdmin):
     
     def enable_load(self, request, queryset):
         models.Company.objects.filter(cik__in=queryset).update(load=True)
+        models.Index.objects.filter(company__cik__in=queryset, attributes_loaded=True).update(attributes_loaded=False)
     enable_load.short_description = 'Enable attribute loading of selected %(verbose_name_plural)s'
     
     def disable_load(self, request, queryset):

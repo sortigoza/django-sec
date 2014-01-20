@@ -14,8 +14,8 @@ from django.db import transaction, connection
 from django.conf import settings
 from django.utils import timezone
 
-from pysec import models
-from pysec.models import DATA_DIR, c
+from django_sec import models
+from django_sec.models import DATA_DIR, c
 
 class Command(BaseCommand):
     help = "Shows data from filings."

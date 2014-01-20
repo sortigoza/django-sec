@@ -5,7 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext, ugettext_lazy as _
 
-from pysec import xbrl
+from django_sec import xbrl
 
 import constants as c
 from settings import DATA_DIR

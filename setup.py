@@ -4,15 +4,15 @@ import urllib
 
 from setuptools import setup, find_packages, Command
 
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 __version__ = '.'.join(map(str, VERSION))
 
 setup(
-    name = "pysec",
+    name = "django-sec",
     version = __version__,
     packages = find_packages(),
 #    package_data = {
-#        'pysec': [
+#        'django_sec': [
 #            'templates/*.*',
 #            'templates/*/*.*',
 #            'templates/*/*/*.*',
@@ -21,11 +21,11 @@ setup(
 #            'static/*/*/*.*',
 #        ],
 #    },
-    author = "Luke Rosiak",
-    author_email = "",
+    author = "Chris Spencer",
+    author_email = "chrisspen@gmail.com",
     description = "Parse XBRL filings from the SEC's EDGAR in Python",
     license = "LGPL",
-    url = "https://github.com/lukerosiak/pysec",
+    url = "https://github.com/chrisspen/django-sec",
     classifiers = [
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

@@ -1,46 +1,65 @@
 Django-SEC
 ==========
 
-This is a fork of Luke Rosiak's [PySEC](https://github.com/lukerosiak/pysec), 
-modified to act as a pluggable Django app with fleshed out admin interface.
+This is a Django app that downloads all SEC filings from the EDGAR database
+into your local database. It provides an admin interface to allow you to
+control which indexes and attributes are loaded as well as inspect downloaded
+data.
 
-This is Django code that compiles a list of all SEC filings from EDGAR into SQL, allows you to download them at will, and parses 50+ key accounting terms from XBRL filings. It is also a Python XBRL parser that allows you to easily extract arbitrary XBRL terms while it handles the contexts, etc. appropriately.
+This is a fork of Luke Rosiak's [PySEC](https://github.com/lukerosiak/pysec),
+modified to act as a pluggable Django app with fleshed out admin interface and
+more efficient data import commands.
 
-The XBRL parsing is translated from VB script written by Charles Hoffman, an accountant and XBRL expert, and reliably extracts more than 50 commonly used accounting terms.
+Installation
+------------
 
-To set up the index of all SEC filings:
+Install the package using pip via:
 
-Put this django app under manage.py and do your settings.py
+    pip install https://github.com/chrisspen/django-sec/archive/master.zip
 
-In settings.py, modify DATA_DIR = '/you/directory/to/download/files/to' and set your database
+then add `django_sec` to your `INSTALLED_APPS` and run:
 
-python manage.py syncdb
+    python manage.py migrate django_sec
 
-python manage.py sec_import_index
+Usage
+-----
 
-This creates the Index() model. To download any filing, call .download() on that model instance. To get its XBRL attributes if it's an XBRL filing, call .xbrl() on it and look at the .fields attribute of the returned model.
+The data import process is divided into two basic commands.
 
+First, import filing indexes for a target year by running:
 
-Or if you just want to use the Python XBRL parser on a .xml file:
+    python manage.py sec_import_index --start-year=<year1> --end-year=<year2>
+    
+This will essentially load the "card catalog" of all companies that filed
+documents between those years.
 
-import xbrl
+If you're running this on the devserver, you can monitor import progress at:
 
-x = xbrl.XBRL(PATH TO LOCAL XML 10-K FILING)
+    http://localhost:8000/admin/django_sec/indexfile/
+    
+and see the loaded indexes and companies at:
 
-print x.fields #a dict of the most important values
+    http://localhost:8000/admin/django_sec/index/
+    http://localhost:8000/admin/django_sec/company/
 
-To get any XBRL term:
+Because the list of companies and filings is enormous, by default, all
+companies are configured to not download any actual filings
+unless explicitly marked to do so.
 
-x.GetFactValue(XMBL TAG, "Duration" or "Instant" (depending on if it's a year-long or snapshot value))
+To mark companies for download, to go the
+company change list page, select one or more companies and run the action
+"Enable attribute loading..." Then run:
 
+    python manage.py sec_import_attrs --start-year=<year1> --end-year=<year2>  --form=10-Q,10-K
+    
+This will download all 10-K and 10-Q filings, extract the attributes and populate
+them into the AttributeValue table accessible at:
 
-For more basic usage, see example.py
+    http://localhost:8000/admin/django_sec/attributevalue/
 
-For an example of generating a CSV of a list of companies, see management/commands/xbrl_to_csv.py
+Currently, this has only been tested to download and extract attributes from
+10-K and 10-Q filings.
 
-By Luke Rosiak
-Released under the GNU
-
-
-
-
+The commands support additional parameters and filters, such as to load data
+for specific companies or quarters. Run `python manage help sec_import_index`
+to see all options.

@@ -13,7 +13,7 @@ from django.db import transaction, connection
 from django.conf import settings
 from django.utils import timezone
 
-from pysec.models import Company, Index, IndexFile, DATA_DIR
+from django_sec.models import Company, Index, IndexFile, DATA_DIR
 
 def removeNonAscii(s):
     return "".join(i for i in s if ord(i)<128)

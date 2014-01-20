@@ -1,4 +1,4 @@
-from pysec.models import *
+from django_sec.models import *
 
 """get a file from the index. it may or may not be present on our hard disk. if it's not, it will be downloaded
 the first time we try to access it, or you can call .download() explicitly"""

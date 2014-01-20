@@ -1,3 +1,9 @@
+Django-SEC
+==========
+
+This is a fork of Luke Rosiak's [PySEC](https://github.com/lukerosiak/pysec), 
+modified to act as a pluggable Django app with fleshed out admin interface.
+
 This is Django code that compiles a list of all SEC filings from EDGAR into SQL, allows you to download them at will, and parses 50+ key accounting terms from XBRL filings. It is also a Python XBRL parser that allows you to easily extract arbitrary XBRL terms while it handles the contexts, etc. appropriately.
 
 The XBRL parsing is translated from VB script written by Charles Hoffman, an accountant and XBRL expert, and reliably extracts more than 50 commonly used accounting terms.

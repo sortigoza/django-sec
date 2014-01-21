@@ -49,6 +49,10 @@ class Command(BaseCommand):
         self.verbose = options['verbose']
         
         self.cik = (options['cik'] or '').strip()
+        if self.cik:
+            self.cik = int(self.cik)
+        else:
+            self.cik = None
         
         forms = (options['form'] or '').strip().split(',')
         
@@ -56,7 +60,8 @@ class Command(BaseCommand):
         if start_year:
             start_year = int(start_year)
         else:
-            start_year = date.today().year - 1
+            #start_year = date.today().year - 1
+            start_year = 1900
         self.start_year = start_year
             
         end_year = options['end_year']
@@ -72,7 +77,6 @@ class Command(BaseCommand):
         transaction.managed(True)
         try:
             for form in forms:
-                print 'form:',form
                 self.import_attributes(form=form)
         finally:
             settings.DEBUG = tmp_debug
@@ -99,14 +103,18 @@ class Command(BaseCommand):
             )
         if form:
             q = q.filter(form=form)
+        q2 = q
         if self.cik:
             q = q.filter(company__cik=self.cik, company__load=True)
+            q2 = q2.filter(company__cik=self.cik)
+            if not q.count() and q2.count():
+                print>>sys.stderr, 'Warning: the company you specified with cik %s is not marked for loading.' % (self.cik,)
         total = q.count()
         i = 0
         print '%i %s indexes found.' % (total, form)
         for ifile in q.iterator():
             i += 1
-            print 'Processing index %s (%i of %i)' % (ifile.filename, i, total)
+            print 'Processing index %s for form %s (%i of %i)' % (ifile.filename, form, i, total)
             ifile.download(verbose=self.verbose)
             #print 'xbrl link:',ifile.xbrl_link()
             
@@ -215,7 +223,8 @@ class Command(BaseCommand):
                 models.AttributeValue.objects.bulk_create(bulk_objects)
                 bulk_objects = []
                 
-            models.Index.objects.filter(id=ifile.id).update(attributes_loaded=True)
+            ticker = ifile.ticker()
+            models.Index.objects.filter(id=ifile.id).update(attributes_loaded=True, _ticker=ticker)
             
             models.Attribute.do_update()
             

@@ -278,6 +278,16 @@ class Index(models.Model):
         null=False,
         db_index=True)
     
+    _ticker = models.CharField(
+        max_length=50,
+        db_index=True,
+        db_column='ticker',
+        verbose_name=_('ticker'),
+        blank=True,
+        null=True,
+        help_text=_('''Caches the trading symbol if one is detected in the
+            filing during attribute load.'''))
+    
     attributes_loaded = models.BooleanField(default=False, db_index=True)
     
     valid = models.BooleanField(
@@ -377,7 +387,7 @@ class Index(models.Model):
 
     def xbrl(self):
         filepath = self.xbrl_localpath()
-        print 'filepath:',filepath
+        #print 'filepath:',filepath
         if not filepath:
             print 'no xbrl found. this option is for 10-ks.'
             return
@@ -391,8 +401,18 @@ class Index(models.Model):
 
         return x
         
-    def ticker(self): #get a company's stock ticker from an XML filing
+    def ticker(self):
+        """
+        Retrieves the company's stock ticker from an XML filing.
+        Note, this is not guaranteed to exist.
+        """
+        if self._ticker:
+            return self._ticker
         filepath = self.xbrl_localpath()
         if filepath:
-            return filepath.split('-')[0]
-        return None
+            ticker = filepath.split('/')[-1].split('-')[0].strip().upper()
+            if ticker:
+                self._ticker = ticker
+            else:
+                self._ticker = None
+        return self._ticker

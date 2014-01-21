@@ -125,7 +125,7 @@ class XBRL:
         if oNode is not None:
             self.fields['TradingSymbol'] = oNode.text
         else:
-            self.fields['TradingSymbol'] = "Not provided"
+            self.fields['TradingSymbol'] = None
 
         #DocumentFiscalYearFocus
         oNode = self.getNode("//dei:DocumentFiscalYearFocus[@contextRef]")

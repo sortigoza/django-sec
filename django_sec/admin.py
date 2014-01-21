@@ -152,6 +152,7 @@ class CompanyAdmin(admin.ModelAdmin):
     search_fields = (
         'cik',
         'name',
+        '_ticker',
     )
     
     readonly_fields = (
@@ -241,6 +242,7 @@ class IndexAdmin(admin.ModelAdmin):
         'filename',
         'company',
         'cik',
+        '_ticker',
         'form',
         'date',
         'quarter',

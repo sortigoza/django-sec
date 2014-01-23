@@ -145,7 +145,7 @@ class Command(NoArgsCommand):
             if key in prior_keys:
                 continue
             prior_keys.add(key)
-            if Index.objects.filter(company=company, date=dt, filename=filename).exists():
+            if Index.objects.filter(company__cik=cik, date=dt, filename=filename).exists():
                 continue
             bulk_indexes.append(Index(
                 company_id=cik,

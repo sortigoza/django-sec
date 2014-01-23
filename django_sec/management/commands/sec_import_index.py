@@ -103,19 +103,25 @@ class Command(NoArgsCommand):
         #zdata = removeNonAscii(zdata)
         
         # Parse the fixed-length fields
-        bulk_objects = []
-        bulk_commit_freq = 100
+        bulk_companies = []
+        bulk_indexes = []
+        bulk_commit_freq = 10000
+        status_secs = 3
         lines = zdata.split('\n')
         i = 0
         total = len(lines)
         IndexFile.objects.filter(id=ifile.id).update(total_rows=total)
         last_status = None
-        prior_keys = set()
-        for r in lines[10:]:
+        prior_keys = set(Index.objects.all().values_list('company__cik','date','filename').distinct())
+        print 'Found %i prior index keys.' % len(prior_keys)
+        prior_ciks = set(Company.objects.all().values_list('cik', flat=True))
+        print 'Found %i prior ciks.' % len(prior_ciks)
+        for r in lines[10:]: # Note, first 10 lines are useless headers.
             i += 1
             if ifile.processed_rows and i < ifile.processed_rows:
                 continue
-            if not last_status or ((datetime.now() - last_status).seconds >= 1):
+            #if not last_status or ((datetime.now() - last_status).seconds >= status_secs):
+            if not last_status or not i % 100:
                 print '\rProcessing record %i of %i (%.02f%%).' % (i, total, float(i)/total*100),
                 sys.stdout.flush()
                 last_status = datetime.now()
@@ -124,35 +130,43 @@ class Command(NoArgsCommand):
             if not dt:
                 continue
             dt = date(*map(int, dt.split('-')))
-    #        if date == '':
-    #            date = None
             if r.strip() == '':
                 continue
             name = r[0:62].strip()
+            
             cik = int(r[74:86].strip())
-            company, _ = Company.objects.get_or_create(cik=cik, defaults=dict(name=name))
+            if cik not in prior_ciks:
+                prior_ciks.add(cik)
+                bulk_companies.append(Company(cik=cik, name=name))
+                
             filename = r[98:].strip()
-            key = (company, dt, filename)#, year, quarter)
+            key = (cik, dt, filename)#, year, quarter)
             if key in prior_keys:
                 continue
             prior_keys.add(key)
-            if Index.objects.filter(company=company, date=dt, filename=filename).exists():
-                continue
-            bulk_objects.append(Index(
-                company=company,
+#            if Index.objects.filter(company=company, date=dt, filename=filename).exists():
+#                continue
+            bulk_indexes.append(Index(
+                company_id=cik,
                 form=r[62:74].strip(), # form type
                 date=dt, # date filed
                 year=year,
                 quarter=quarter,
                 filename=filename,
             ))
-            if not len(bulk_objects) % bulk_commit_freq:
-                Index.objects.bulk_create(bulk_objects)
-                bulk_objects = []
+            if not len(bulk_indexes) % bulk_commit_freq:
+                if len(bulk_companies):
+                    Company.objects.bulk_create(bulk_companies)
+                    bulk_companies = []
+                Index.objects.bulk_create(bulk_indexes)
+                bulk_indexes = []
                 transaction.commit()
                 
-        if bulk_objects:
-            Index.objects.bulk_create(bulk_objects)
+        if bulk_indexes:
+            if len(bulk_companies):
+                Company.objects.bulk_create(bulk_companies)
+                bulk_companies = []
+            Index.objects.bulk_create(bulk_indexes)
         IndexFile.objects.filter(id=ifile.id).update(processed=timezone.now())
         transaction.commit()
         

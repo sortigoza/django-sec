@@ -366,8 +366,8 @@ class Index(models.Model):
             print 'html_link:',
             print 'xbrl_link:',xbrl_link
             
-        if not os.path.exists(html_link.split('/')[-1]):
-            os.system('wget %s' % html_link)
+#        if not os.path.exists(html_link.split('/')[-1]):
+#            os.system('wget %s' % html_link)
         
         if xbrl_link:
             if not os.path.exists(xbrl_link.split('/')[-1]):

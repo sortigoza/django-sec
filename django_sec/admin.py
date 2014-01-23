@@ -265,6 +265,7 @@ class IndexAdmin(admin.ModelAdmin):
     
     readonly_fields = (
         'cik',
+        'xbrl_link',
     )
     
     actions = (

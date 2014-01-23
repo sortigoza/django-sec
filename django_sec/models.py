@@ -372,7 +372,7 @@ class Index(models.Model):
         if xbrl_link:
             if not os.path.exists(xbrl_link.split('/')[-1]):
                 os.system('wget %s' % xbrl_link)
-                os.system('unzip *.zip')
+                os.system('unzip *.zip')#TODO:remove? just read zip directly?
 
     def xbrl_localpath(self):
         try:

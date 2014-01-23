@@ -105,14 +105,15 @@ class Command(NoArgsCommand):
         # Parse the fixed-length fields
         bulk_companies = []
         bulk_indexes = []
-        bulk_commit_freq = 10000
+        bulk_commit_freq = 1000
         status_secs = 3
         lines = zdata.split('\n')
         i = 0
         total = len(lines)
         IndexFile.objects.filter(id=ifile.id).update(total_rows=total)
         last_status = None
-        prior_keys = set(Index.objects.all().values_list('company__cik','date','filename').distinct())
+        #prior_keys = set(Index.objects.all().values_list('company__cik','date','filename').distinct())#Massive memory consumption
+        prior_keys = set()
         print 'Found %i prior index keys.' % len(prior_keys)
         prior_ciks = set(Company.objects.all().values_list('cik', flat=True))
         print 'Found %i prior ciks.' % len(prior_ciks)
@@ -120,8 +121,8 @@ class Command(NoArgsCommand):
             i += 1
             if ifile.processed_rows and i < ifile.processed_rows:
                 continue
-            #if not last_status or ((datetime.now() - last_status).seconds >= status_secs):
-            if not last_status or not i % 100:
+            if not last_status or ((datetime.now() - last_status).seconds >= status_secs):
+            #if not last_status or not i % 100:
                 print '\rProcessing record %i of %i (%.02f%%).' % (i, total, float(i)/total*100),
                 sys.stdout.flush()
                 last_status = datetime.now()
@@ -144,8 +145,8 @@ class Command(NoArgsCommand):
             if key in prior_keys:
                 continue
             prior_keys.add(key)
-#            if Index.objects.filter(company=company, date=dt, filename=filename).exists():
-#                continue
+            if Index.objects.filter(company=company, date=dt, filename=filename).exists():
+                continue
             bulk_indexes.append(Index(
                 company_id=cik,
                 form=r[62:74].strip(), # form type

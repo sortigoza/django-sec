@@ -307,6 +307,7 @@ class Index(models.Model):
         )
         index_together = (
             ('year', 'quarter'),
+            ('company', 'date', 'filename'),
         )
     
     def xbrl_link(self):

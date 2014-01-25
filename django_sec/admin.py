@@ -184,6 +184,9 @@ class CompanyAdmin(admin.ModelAdmin):
         'disable_load',
     )
     
+    def lookup_allowed(self, key, value):
+        return True
+    
     def queryset(self, *args, **kwargs):
         qs = super(CompanyAdmin, self).queryset(*args, **kwargs)
         if ApproxCountQuerySet:

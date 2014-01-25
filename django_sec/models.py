@@ -1,5 +1,6 @@
 import os
 import sys
+import zipfile
 
 from django.db import models
 from django.conf import settings
@@ -373,7 +374,8 @@ class Index(models.Model):
         if xbrl_link:
             if not os.path.exists(xbrl_link.split('/')[-1]):
                 os.system('wget %s' % xbrl_link)
-                os.system('unzip *.zip')#TODO:remove? just read zip directly?
+                # Don't to this. It wastes disk space. Just read the ZIP directly.
+                #os.system('unzip *.zip')
 
     def xbrl_localpath(self):
         try:
@@ -381,18 +383,27 @@ class Index(models.Model):
         except:
             self.download()
         files = os.listdir('.')
-        xml = sorted([elem for elem in files if elem.endswith('.xml')],key=len)
+#        print 'files:',files
+        archives = [elem for elem in files if elem.endswith('.zip')]
+        if not archives:
+            return None, None
+        zf = zipfile.ZipFile(archives[0])
+        #xml = sorted([elem for elem in files if elem.endswith('.xml')],key=len)
+        xml = sorted([elem for elem in zf.namelist() if elem.endswith('.xml')], key=len)
+#        print 'xml:',xml
+#        sys.exit()
         if not len(xml):
-            return None
-        return self.localpath() + xml[0]
+            return None, None
+        #return self.localpath() + xml[0], zf.open
+        return xml[0], zf.open
 
     def xbrl(self):
-        filepath = self.xbrl_localpath()
-        #print 'filepath:',filepath
+        filepath, open_method = self.xbrl_localpath()
+#        print 'filepath:',filepath
         if not filepath:
             print 'no xbrl found. this option is for 10-ks.'
             return
-        x = xbrl.XBRL(filepath)
+        x = xbrl.XBRL(filepath, opener=open_method)
         x.fields['FiscalPeriod'] = x.fields['DocumentFiscalPeriodFocus']
         x.fields['FiscalYear'] = x.fields['DocumentFiscalYearFocus']
         x.fields['DocumentPeriodEndDate'] = x.fields['BalanceSheetDate']
@@ -409,7 +420,7 @@ class Index(models.Model):
         """
         if self._ticker:
             return self._ticker
-        filepath = self.xbrl_localpath()
+        filepath, _ = self.xbrl_localpath()
         if filepath:
             ticker = filepath.split('/')[-1].split('-')[0].strip().upper()
             if ticker:

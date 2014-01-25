@@ -7,10 +7,17 @@ import constants as c
 
 class XBRL:
 
-    def __init__(self, XBRLInstanceLocation):
+    def __init__(self, XBRLInstanceLocation, opener=None):
         self.XBRLInstanceLocation = XBRLInstanceLocation
         self.fields = {}
-        self.EntireInstanceDocument = open(XBRLInstanceLocation,'r').read() 
+        
+        if opener:
+            # Allow us to read directly from a ZIP archive without extracting
+            # the whole thing.
+            self.EntireInstanceDocument = opener(XBRLInstanceLocation,'r').read()
+        else:
+            self.EntireInstanceDocument = open(XBRLInstanceLocation,'r').read()
+         
         self.oInstance = etree.fromstring(self.EntireInstanceDocument)
         self.ns = {}
         for k in self.oInstance.nsmap.keys():

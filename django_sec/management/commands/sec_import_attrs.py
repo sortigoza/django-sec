@@ -111,10 +111,17 @@ class Command(BaseCommand):
                 print>>sys.stderr, 'Warning: the company you specified with cik %s is not marked for loading.' % (self.cik,)
         total = q.count()
         i = 0
+        commit_freq = 100
         print '%i %s indexes found.' % (total, form)
         for ifile in q.iterator():
             i += 1
             print 'Processing index %s for form %s (%i of %i)' % (ifile.filename, form, i, total)
+            
+            if not i % commit_freq:
+                sys.stdout.flush()
+                if not self.dryrun:
+                    transaction.commit()
+            
             ifile.download(verbose=self.verbose)
             #print 'xbrl link:',ifile.xbrl_link()
             
@@ -143,7 +150,6 @@ class Command(BaseCommand):
             unique_attrs = set()
             bulk_objects = []
             prior_keys = set()
-            commit_freq = 100
             j = sub_total = 0
             #print
             for node, sub_total in x.iter_namespace():

@@ -46,7 +46,7 @@ class Command(NoArgsCommand):
         if end_year:
             end_year = int(end_year)
         else:
-            end_year = date.today().year
+            end_year = date.today().year+1
             
         target_quarter = options['quarter']
         if target_quarter:

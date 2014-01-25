@@ -3,6 +3,11 @@ from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 
+try:
+    from admin_steroids.queryset import ApproxCountQuerySet
+except ImportError, e:
+    ApproxCountQuerySet = None
+
 import models
 
 class NamespaceAdmin(admin.ModelAdmin):
@@ -71,6 +76,12 @@ class AttributeAdmin(admin.ModelAdmin):
         'refresh_total_values',
     )
     
+    def queryset(self, *args, **kwargs):
+        qs = super(AttributeAdmin, self).queryset(*args, **kwargs)
+        if ApproxCountQuerySet:
+            qs = qs._clone(klass=ApproxCountQuerySet)
+        return qs
+    
     def enable_load(self, request, queryset):
         models.Attribute.objects.filter(id__in=queryset).update(load=True)
         models.Index.objects.filter(attributes_loaded=True).update(attributes_loaded=False)
@@ -116,6 +127,12 @@ class AttributeValueAdmin(admin.ModelAdmin):
         'attribute_name',
         'attribute_total_values',
     )
+    
+    def queryset(self, *args, **kwargs):
+        qs = super(AttributeValueAdmin, self).queryset(*args, **kwargs)
+        if ApproxCountQuerySet:
+            qs = qs._clone(klass=ApproxCountQuerySet)
+        return qs
     
     def company_name(self, obj=None):
         if not obj:
@@ -166,6 +183,12 @@ class CompanyAdmin(admin.ModelAdmin):
         'enable_load',
         'disable_load',
     )
+    
+    def queryset(self, *args, **kwargs):
+        qs = super(CompanyAdmin, self).queryset(*args, **kwargs)
+        if ApproxCountQuerySet:
+            qs = qs._clone(klass=ApproxCountQuerySet)
+        return qs
     
     def enable_load(self, request, queryset):
         models.Company.objects.filter(cik__in=queryset).update(load=True)
@@ -222,6 +245,12 @@ class IndexFileAdmin(admin.ModelAdmin):
         'mark_unprocessed',
     )
     
+    def queryset(self, *args, **kwargs):
+        qs = super(IndexFileAdmin, self).queryset(*args, **kwargs)
+        if ApproxCountQuerySet:
+            qs = qs._clone(klass=ApproxCountQuerySet)
+        return qs
+    
     def mark_unprocessed(self, request, queryset):
         models.IndexFile.objects\
             .filter(id__in=queryset.values_list('id', flat=True))\
@@ -272,6 +301,12 @@ class IndexAdmin(admin.ModelAdmin):
 #        'enable',
 #        'disable',
     )
+    
+    def queryset(self, *args, **kwargs):
+        qs = super(IndexAdmin, self).queryset(*args, **kwargs)
+        if ApproxCountQuerySet:
+            qs = qs._clone(klass=ApproxCountQuerySet)
+        return qs
     
     def cik(self, obj=None):
         if not obj:

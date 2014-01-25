@@ -12,6 +12,7 @@ from django.core.management.base import NoArgsCommand
 from django.db import transaction, connection
 from django.conf import settings
 from django.utils import timezone
+from django.utils.encoding import force_text
 
 from django_sec.models import Company, Index, IndexFile, DATA_DIR
 
@@ -138,7 +139,7 @@ class Command(NoArgsCommand):
             cik = int(r[74:86].strip())
             if cik not in prior_ciks:
                 prior_ciks.add(cik)
-                bulk_companies.append(Company(cik=cik, name=name))
+                bulk_companies.append(Company(cik=cik, name=force_text(name, errors='replace')))
                 
             filename = r[98:].strip()
             key = (cik, dt, filename)#, year, quarter)

@@ -8,6 +8,7 @@ try:
 except ImportError, e:
     ApproxCountQuerySet = None
 
+import forms
 import models
 
 class NamespaceAdmin(admin.ModelAdmin):
@@ -25,6 +26,8 @@ admin.site.register(
     NamespaceAdmin)
 
 class UnitAdmin(admin.ModelAdmin):
+    
+    form = forms.UnitChangeForm
     
     list_display = (
         'name',

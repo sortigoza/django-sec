@@ -51,6 +51,11 @@ class Unit(models.Model):
         editable=False,
         help_text=_('If true, indicates this unit is the master referred to by duplicates.'))
     
+    class Meta:
+        ordering = (
+            'name',
+        )
+    
     def __unicode__(self):
         return self.name
     

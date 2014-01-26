@@ -131,8 +131,8 @@ class AttributeValue(models.Model):
     # or decimals above 5 were found, so I've started there and added
     # a little more to handle future increases.
     value = models.DecimalField(
-        max_digits=20,
-        decimal_places=6,
+        max_digits=c.MAX_DIGITS,
+        decimal_places=c.MAX_DECIMALS,
         blank=False,
         null=False)
     

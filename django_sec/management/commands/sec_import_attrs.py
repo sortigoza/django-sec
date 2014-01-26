@@ -193,6 +193,9 @@ class Command(BaseCommand):
                 value = node.text.strip()
                 if not value:
                     continue
+                assert len(value.split('.')[0]) <= c.MAX_QUANTIZE, \
+                    'Value too large, must be less than %i digits: %i %s' \
+                        % (c.MAX_QUANTIZE, len(value), repr(value))
                 #print attribute
                 models.Attribute.objects.filter(id=attribute.id).update(total_values_fresh=False)
                 #print context_id,attribute.name,node.attrib['decimals'],unit,start_date,end_date,ifile.date

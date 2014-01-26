@@ -19,12 +19,12 @@ from django_sec.models import DATA_DIR, c
 
 class Command(BaseCommand):
     help = "Shows data from filings."
-    args = '<form>'
+    args = ''
     option_list = BaseCommand.option_list + (
         make_option('--cik',
             default=None),
-        make_option('--form',
-            default='10-K'),
+        make_option('--forms',
+            default='10-K,10-Q'),
         make_option('--start-year',
             default=None),
         make_option('--end-year',
@@ -54,7 +54,7 @@ class Command(BaseCommand):
         else:
             self.cik = None
         
-        forms = (options['form'] or '').strip().split(',')
+        forms = (options['forms'] or '').strip().split(',')
         
         start_year = options['start_year']
         if start_year:
@@ -76,8 +76,8 @@ class Command(BaseCommand):
         transaction.enter_transaction_management()
         transaction.managed(True)
         try:
-            for form in forms:
-                self.import_attributes(form=form)
+            #for form in forms:
+            self.import_attributes(forms=forms)
         finally:
             settings.DEBUG = tmp_debug
             if self.dryrun:
@@ -88,7 +88,7 @@ class Command(BaseCommand):
             transaction.leave_transaction_management()
             connection.close()
     
-    def import_attributes(self, form):
+    def import_attributes(self, forms):
         # Get a file from the index.
         # It may or may not be present on our hard disk.
         # If it's not, it will be downloaded
@@ -101,8 +101,8 @@ class Command(BaseCommand):
                 attributes_loaded=False,
                 valid=True,
             )
-        if form:
-            q = q.filter(form=form)
+        if forms:
+            q = q.filter(form__in=forms)
         q2 = q
         if self.cik:
             q = q.filter(company__cik=self.cik, company__load=True)
@@ -112,10 +112,10 @@ class Command(BaseCommand):
         total = q.count()
         i = 0
         commit_freq = 100
-        print '%i %s indexes found.' % (total, form)
+        print '%i indexes found for forms %s.' % (total, ', '.join(forms))
         for ifile in q.iterator():
             i += 1
-            print 'Processing index %s for form %s (%i of %i)' % (ifile.filename, form, i, total)
+            print 'Processing index %s for (%i of %i)' % (ifile.filename, i, total)
             
             if not i % commit_freq:
                 sys.stdout.flush()

@@ -6,6 +6,12 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext, ugettext_lazy as _
 
+try:
+    from admin_steroids.utils import StringWithTitle
+    APP_LABEL = StringWithTitle('django_sec', 'SEC')
+except ImportError:
+    APP_LABEL = 'django_sec'
+
 from django_sec import xbrl
 
 import constants as c
@@ -22,6 +28,9 @@ class Namespace(models.Model):
         null=False,
         db_index=True,
         unique=True)
+    
+    class Meta:
+        app_label = APP_LABEL
     
     def __unicode__(self):
         return self.name
@@ -52,6 +61,7 @@ class Unit(models.Model):
         help_text=_('If true, indicates this unit is the master referred to by duplicates.'))
     
     class Meta:
+        app_label = APP_LABEL
         ordering = (
             'name',
         )
@@ -99,6 +109,7 @@ class Attribute(models.Model):
         verbose_name='fresh')
     
     class Meta:
+        app_label = APP_LABEL
         unique_together = (
             ('namespace', 'name'),
         )
@@ -163,6 +174,7 @@ class AttributeValue(models.Model):
         help_text=_('The date this information became publically available.'))
     
     class Meta:
+        app_label = APP_LABEL
         ordering = ('-attribute__total_values', '-start_date', 'attribute__name')
         unique_together = (
             ('company', 'attribute', 'start_date', 'end_date'),
@@ -203,6 +215,7 @@ class IndexFile(models.Model):
     processed = models.DateTimeField(blank=True, null=True)
     
     class Meta:
+        app_label = APP_LABEL
         ordering = ('year', 'quarter')
         unique_together = (
             ('year', 'quarter'),
@@ -228,6 +241,7 @@ class Company(models.Model):
         help_text=_('If checked, all values for load-enabled attributes will be loaded for this company.'))
     
     class Meta:
+        app_label = APP_LABEL
         verbose_name_plural = _('companies')
     
     def __unicode__(self):
@@ -304,6 +318,7 @@ class Index(models.Model):
     error = models.TextField(blank=True, null=True)
     
     class Meta:
+        app_label = APP_LABEL
         verbose_name_plural = _('indexes')
         unique_together = (
             # Note, filenames are not necessarily unique.

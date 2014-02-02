@@ -282,7 +282,8 @@ class Command(BaseCommand):
                 current_count = i
                 
                 #print 'Processing index %s for (%i of %i)' % (ifile.filename, i, total)
-                print_status('Processing index %s.' % (ifile.filename,), count=i, total=total)
+                msg = 'Processing index %s.' % (ifile.filename,)
+                print_status(msg, count=i, total=total)
                 
                 if not i % commit_freq:
                     sys.stdout.flush()
@@ -330,7 +331,7 @@ class Command(BaseCommand):
                             sub_current = j
                             if not j % commit_freq:
                                 #print '\rImporting attribute %i of %i.' % (j, sub_total),
-                                print_status('Importing attributes.', count=i, total=total)
+                                print_status(msg, count=i, total=total)
                                 #sys.stdout.flush()
                                 if not self.dryrun:
                                     transaction.commit()
@@ -366,7 +367,7 @@ class Command(BaseCommand):
                             if not attribute.load:
                                 continue
                             unit, _ = models.Unit.objects.get_or_create(name=node.attrib['unitRef'].strip())
-                            value = node.text.strip()
+                            value = (node.text or '').strip()
                             if not value:
                                 continue
                             assert len(value.split('.')[0]) <= c.MAX_QUANTIZE, \
@@ -425,16 +426,16 @@ class Command(BaseCommand):
                     
                         break
                     
-                    except TransactionRollbackError, e:
-                        if TransactionRollbackError.__name__ != 'TransactionRollbackError':
-                            raise
+                    except DatabaseError, e:
                         if retry+1 == maxretries:
                             raise
                         print e, 'retry', retry
                         connection.close()
                         time.sleep(random.random()*5)
                     
-                    except DatabaseError, e:
+                    except TransactionRollbackError, e:
+                        if TransactionRollbackError.__name__ != 'TransactionRollbackError':
+                            raise
                         if retry+1 == maxretries:
                             raise
                         print e, 'retry', retry

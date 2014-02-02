@@ -127,15 +127,15 @@ class Attribute(models.Model):
         i = 0
         for r in q.iterator():
             i += 1
-            if not i % 100:
-                print '\rRefreshing attribute %i of %i.' % (i, total),
-                sys.stdout.flush()
+#            if not i % 100:
+#                print '\rRefreshing attribute %i of %i.' % (i, total),
+#                sys.stdout.flush()
             total_values = AttributeValue.objects.filter(attribute__name=r.name).count()
             cls.objects.filter(id=r.id).update(
                 #total_values=r.values.all().count(),
                 total_values=total_values,
                 total_values_fresh=True)
-        print '\rRefreshing attribute %i of %i.' % (total, total),
+#        print '\rRefreshing attribute %i of %i.' % (total, total),
 
 class AttributeValue(models.Model):
     
@@ -372,14 +372,15 @@ class Index(models.Model):
             return f
 
     def download(self, verbose=False):
-        try: 
-            os.mkdir(self.localcik())
-        except:
-            pass
-        try:
-            os.mkdir(self.localpath())
-        except:
-            pass
+        
+        d = self.localcik()
+        if not os.path.isdir(d):
+            os.makedirs(d)
+            
+        d = self.localpath()
+        if not os.path.isdir(d):
+            os.makedirs(d)
+            
         os.chdir(self.localpath())
         
         html_link = self.html_link()
@@ -393,7 +394,10 @@ class Index(models.Model):
         
         if xbrl_link:
             if not os.path.exists(xbrl_link.split('/')[-1]):
-                os.system('wget %s' % xbrl_link)
+                if verbose:
+                    os.system('wget %s' % xbrl_link)
+                else:
+                    os.system('wget --quiet %s' % xbrl_link)
                 # Don't to this. It wastes disk space. Just read the ZIP directly.
                 #os.system('unzip *.zip')
 

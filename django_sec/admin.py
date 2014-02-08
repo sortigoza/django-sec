@@ -109,7 +109,7 @@ class AttributeValueAdmin(admin.ModelAdmin):
         'company_name',
         'attribute_name',
         'value',
-        'unit',
+        'true_unit',
         'start_date',
         'end_date',
         'attribute_total_values',
@@ -129,6 +129,11 @@ class AttributeValueAdmin(admin.ModelAdmin):
         'company_name',
         'attribute_name',
         'attribute_total_values',
+        'true_unit',
+    )
+    
+    exclude = (
+        'unit',
     )
     
     def queryset(self, *args, **kwargs):
@@ -136,6 +141,12 @@ class AttributeValueAdmin(admin.ModelAdmin):
         if ApproxCountQuerySet:
             qs = qs._clone(klass=ApproxCountQuerySet)
         return qs
+    
+    def true_unit(self, obj=None):
+        if not obj:
+            return ''
+        return obj.unit.true_unit
+    true_unit.short_description = 'unit'
     
     def company_name(self, obj=None):
         if not obj:

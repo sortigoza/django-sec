@@ -4,12 +4,11 @@ import urllib
 
 from setuptools import setup, find_packages, Command
 
-VERSION = (0, 2, 1)
-__version__ = '.'.join(map(str, VERSION))
+import django_sec
 
 setup(
     name = "django-sec",
-    version = __version__,
+    version = django_sec.__version__,
     packages = find_packages(),
 #    package_data = {
 #        'django_sec': [

@@ -71,6 +71,10 @@ class Command(BaseCommand):
             dest='multi',
             default=0,
             help='The number of processes to use. Must be a multiple of 2.'),
+        make_option('--show-pending',
+            action='store_true',
+            default=False,
+            help='If given, will only report the number of pending records to process then exit.'),
     )
     
     def handle(self, **options):
@@ -137,7 +141,7 @@ class Command(BaseCommand):
             print 'All processes complete.'
         else:
             self.start_times[None] = time.time()
-            self.run_process()
+            self.run_process(**kwargs)
     
     def print_progress(self, clear=True, newline=True):
         if self.last_progress_refresh and (datetime.now()-self.last_progress_refresh).seconds < 0.5:
@@ -180,11 +184,15 @@ class Command(BaseCommand):
         for stripe, (current, total) in self.stripe_counts.iteritems():
             overall_current_count += current
             overall_total_count += total
+        #print 'overall_current_count:',overall_current_count
+        #print 'overall_total_count:',overall_total_count
         if overall_total_count and Job:
             Job.update_progress(
                 total_parts_complete=overall_current_count,
                 total_parts=overall_total_count,
             )
+            if not self.dryrun:
+                transaction.commit()
     
     def run_process(self, status=None, **kwargs):
         tmp_debug = settings.DEBUG
@@ -231,6 +239,7 @@ class Command(BaseCommand):
                     message,
                 ])
             else:
+                #print 'total_count:',total_count
                 self.progress[stripe] = (
                     current_count,
                     total_count,
@@ -239,7 +248,7 @@ class Command(BaseCommand):
                     estimated_completion_datetime,
                     message,
                 )
-                self.print_progress(clear=False, newline=False)
+                self.print_progress(clear=False, newline=True)
         
         stripe_num, stripe_mod = parse_stripe(stripe)
         if stripe:
@@ -271,8 +280,14 @@ class Command(BaseCommand):
             if stripe is not None:
                 q = q.extra(where=['(("django_sec_index"."id" %%%% %i) = %i)' % (stripe_mod, stripe_num)])
                     
-            print_status('Finding total record count...')
+            #print_status('Finding total record count...')
             total_count = total = q.count()
+            
+            if kwargs['show_pending']:
+                print '='*80
+                print '%i total pending records' % total_count
+                return
+            
             print_status('%i total rows.' % (total,))
             i = 0
             commit_freq = 100
@@ -447,4 +462,6 @@ class Command(BaseCommand):
             traceback.print_exc(file=ferr)
             error = ferr.getvalue()
             print_status('Fatal error: %s' % (error,))
+        finally:
+            connection.close()
             

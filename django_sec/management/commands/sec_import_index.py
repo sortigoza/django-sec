@@ -61,10 +61,6 @@ class Command(NoArgsCommand):
                 for quarter in range(4):
                     if target_quarter and quarter+1 != target_quarter:
                         continue
-                    quarter_start_month = quarter*3+1
-                    quarter_start_date = date(year, quarter_start_month, 1)
-                    if date.today() < quarter_start_date:
-                        continue
                     self.get_filing_list(year, quarter+1)
         finally:
             settings.DEBUG = tmp_debug

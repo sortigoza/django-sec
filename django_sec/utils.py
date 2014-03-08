@@ -42,6 +42,7 @@ def lookup_cik(ticker, name=None):
     # So we start searching with everything we have, and then backoff to widen
     # the search.
     name = (name or '').strip()
+    name = ''.join(_ for _ in (name or '').strip() if ord(_) < 128)
     if name:
         name_parts = name.split(' ')
         for i in xrange(len(name_parts)):

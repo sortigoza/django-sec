@@ -212,7 +212,6 @@ class Command(BaseCommand):
             connection.close()
     
     def import_attributes(self, status=None, **kwargs):
-        
         stripe = kwargs.get('stripe')
         reraise = kwargs.get('reraise')
         
@@ -262,21 +261,23 @@ class Command(BaseCommand):
             # the first time we try to access it, or you can call
             # .download() explicitly.
             q = models.Index.objects.filter(
-                year__in=range(self.start_year, self.end_year))
+                year__gte=self.start_year,
+                year__lte=self.end_year)
             if not self.force:
                 q = q.filter(
-                    attributes_loaded=False,
-                    valid=True,
+                    attributes_loaded__exact=0,#False,
+                    valid__exact=1,#True,
                 )
             if self.forms:
                 q = q.filter(form__in=self.forms)
+            
             q2 = q
             if self.cik:
                 q = q.filter(company__cik=self.cik, company__load=True)
                 q2 = q2.filter(company__cik=self.cik)
                 if not q.count() and q2.count():
                     print>>sys.stderr, 'Warning: the company you specified with cik %s is not marked for loading.' % (self.cik,)
-                    
+            
             if stripe is not None:
                 q = q.extra(where=['(("django_sec_index"."id" %%%% %i) = %i)' % (stripe_mod, stripe_num)])
                     

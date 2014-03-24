@@ -330,6 +330,7 @@ class Index(models.Model):
             ('year', 'quarter'),
             ('company', 'date', 'filename'),
         )
+        ordering = ('-date', 'filename')
     
     def xbrl_link(self):
         if self.form.startswith('10-K') or self.form.startswith('10-Q'):

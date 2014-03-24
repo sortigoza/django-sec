@@ -4,7 +4,7 @@ import re
 import sys
 from zipfile import ZipFile
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from optparse import make_option
 
 from django.core.management.base import NoArgsCommand
@@ -32,6 +32,9 @@ class Command(NoArgsCommand):
         make_option('--delete-prior-indexes',
             action='store_true',
             default=False),
+        make_option('--auto-reprocess-last-n-days',
+            default=90,
+            help='The number of days to automatically redownload and reprocess index files.'),
     )
     
     def handle_noargs(self, **options):
@@ -51,7 +54,9 @@ class Command(NoArgsCommand):
         target_quarter = options['quarter']
         if target_quarter:
             target_quarter = int(target_quarter)
-            
+        
+        auto_reprocess_last_n_days = int(options['auto_reprocess_last_n_days'])
+        
         tmp_debug = settings.DEBUG
         settings.DEBUG = False
         transaction.enter_transaction_management()
@@ -61,14 +66,16 @@ class Command(NoArgsCommand):
                 for quarter in range(4):
                     if target_quarter and quarter+1 != target_quarter:
                         continue
-                    self.get_filing_list(year, quarter+1)
+                    quarter_start = date(year, quarter*3+1, 1)
+                    reprocess = quarter_start > (date.today() - timedelta(days=auto_reprocess_last_n_days))
+                    self.get_filing_list(year, quarter+1, reprocess=reprocess)
         finally:
             settings.DEBUG = tmp_debug
             transaction.commit()
             transaction.leave_transaction_management()
             connection.close()
                 
-    def get_filing_list(self, year, quarter):
+    def get_filing_list(self, year, quarter, reprocess=False):
         """
         Gets the list of filings and download locations for the given year and quarter.
         """
@@ -79,14 +86,23 @@ class Command(NoArgsCommand):
             os.makedirs(DATA_DIR)
         fn = os.path.join(DATA_DIR, 'company_%d_%d.zip' % (year, quarter))
     
-        ifile, _ = IndexFile.objects.get_or_create(year=year, quarter=quarter, defaults=dict(filename=fn))
-        if ifile.processed:
+        ifile, _ = IndexFile.objects.get_or_create(
+            year=year, quarter=quarter, defaults=dict(filename=fn))
+        if ifile.processed and not reprocess:
             return
         ifile.filename = fn
         
+        if os.path.exists(fn) and reprocess:
+            print 'Deleting old file %s.' % fn
+            os.remove(fn)
+        
         if not os.path.exists(fn):
             print 'Downloading %s.' % (url,)
-            compressed_data = urllib.urlopen(url).read()
+            try:
+                compressed_data = urllib.urlopen(url).read()
+            except IOError, e:
+                print 'Unable to download url: %s' % (e,)
+                return
             fileout = file(fn,'w')
             fileout.write(compressed_data)
             fileout.close()

@@ -173,6 +173,8 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = (
         'cik',
         'name',
+        'min_date',
+        'max_date',
         'load',
     )
     
@@ -191,6 +193,8 @@ class CompanyAdmin(admin.ModelAdmin):
         'name',
         'filings_link',
         'values_link',
+        'min_date',
+        'max_date',
     )
     
     actions = (

@@ -3,6 +3,7 @@ import sys
 import zipfile
 
 from django.db import models
+from django.db.models import Min, Max
 from django.conf import settings
 from django.utils.translation import ugettext, ugettext_lazy as _
 
@@ -240,6 +241,22 @@ class Company(models.Model):
         db_index=True,
         help_text=_('If checked, all values for load-enabled attributes will be loaded for this company.'))
     
+    min_date = models.DateField(
+        blank=True,
+        null=True,
+        editable=False,
+        db_index=True,
+        help_text=_('''The oldest date of associated SEC Edgar filings
+            for this company.'''))
+    
+    max_date = models.DateField(
+        blank=True,
+        null=True,
+        editable=False,
+        db_index=True,
+        help_text=_('''The most recent date of associated SEC Edgar filings
+            for this company.'''))
+    
     class Meta:
         app_label = APP_LABEL
         verbose_name_plural = _('companies')
@@ -251,6 +268,12 @@ class Company(models.Model):
         if self.cik:
             try:
                 old = type(self).objects.get(cik=self.cik)
+                
+                aggs = self.attributes.all()\
+                    .aggregate(Min('start_date'), Max('start_date'))
+                self.min_date = aggs['start_date__min']
+                self.max_date = aggs['start_date__max']
+                
                 if not old.load and self.load:
                     # If we just flag this company for loading then
                     # flag this company's indexes for loading.

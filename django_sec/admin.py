@@ -112,6 +112,7 @@ class AttributeValueAdmin(admin.ModelAdmin):
         'true_unit',
         'start_date',
         'end_date',
+        'filing_date',
         'attribute_total_values',
     )
     

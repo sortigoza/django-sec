@@ -32,6 +32,9 @@ class Command(NoArgsCommand):
         make_option('--delete-prior-indexes',
             action='store_true',
             default=False),
+        make_option('--reprocess',
+            action='store_true',
+            default=False),
         make_option('--auto-reprocess-last-n-days',
             default=90,
             help='The number of days to automatically redownload and reprocess index files.'),
@@ -50,7 +53,9 @@ class Command(NoArgsCommand):
             end_year = int(end_year)
         else:
             end_year = date.today().year+1
-            
+        
+        reprocess = options['reprocess']
+        
         target_quarter = options['quarter']
         if target_quarter:
             target_quarter = int(target_quarter)
@@ -67,8 +72,8 @@ class Command(NoArgsCommand):
                     if target_quarter and quarter+1 != target_quarter:
                         continue
                     quarter_start = date(year, quarter*3+1, 1)
-                    reprocess = quarter_start > (date.today() - timedelta(days=auto_reprocess_last_n_days))
-                    self.get_filing_list(year, quarter+1, reprocess=reprocess)
+                    _reprocess = reprocess or (quarter_start > (date.today() - timedelta(days=auto_reprocess_last_n_days)))
+                    self.get_filing_list(year, quarter+1, reprocess=_reprocess)
         finally:
             settings.DEBUG = tmp_debug
             transaction.commit()
@@ -131,12 +136,14 @@ class Command(NoArgsCommand):
         last_status = None
         #prior_keys = set(Index.objects.all().values_list('company__cik','date','filename').distinct())#Massive memory consumption
         prior_keys = set()
-        print 'Found %i prior index keys.' % len(prior_keys)
+        #print 'Found %i prior index keys.' % len(prior_keys)
         prior_ciks = set(Company.objects.all().values_list('cik', flat=True))
         print 'Found %i prior ciks.' % len(prior_ciks)
+        index_add_count = 0
+        company_add_count = 0
         for r in lines[10:]: # Note, first 10 lines are useless headers.
             i += 1
-            if ifile.processed_rows and i < ifile.processed_rows:
+            if not reprocess and ifile.processed_rows and i < ifile.processed_rows:
                 continue
             if not last_status or ((datetime.now() - last_status).seconds >= status_secs):
             #if not last_status or not i % 100:
@@ -154,6 +161,7 @@ class Command(NoArgsCommand):
             
             cik = int(r[74:86].strip())
             if cik not in prior_ciks:
+                company_add_count += 1
                 prior_ciks.add(cik)
                 bulk_companies.append(Company(cik=cik, name=force_text(name, errors='replace')))
                 
@@ -164,6 +172,7 @@ class Command(NoArgsCommand):
             prior_keys.add(key)
             if Index.objects.filter(company__cik=cik, date=dt, filename=filename).exists():
                 continue
+            index_add_count += 1
             bulk_indexes.append(Index(
                 company_id=cik,
                 form=r[62:74].strip(), # form type
@@ -189,6 +198,9 @@ class Command(NoArgsCommand):
         transaction.commit()
         
         print '\rProcessing record %i of %i (%.02f%%).' % (total, total, 100),
+        print
+        print '%i new companies found.' % company_add_count
+        print '%i new indexes found.' % index_add_count
         sys.stdout.flush()
         IndexFile.objects.filter(id=ifile.id).update(processed_rows=total)
         

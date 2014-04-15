@@ -25,10 +25,13 @@ setup(
     description = "Parse XBRL filings from the SEC's EDGAR in Python",
     license = "LGPL",
     url = "https://github.com/chrisspen/django-sec",
+    #https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers = [
+        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: LGPL License',
+        'Intended Audience :: Financial and Insurance Industry',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Framework :: Django',

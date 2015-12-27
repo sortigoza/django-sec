@@ -20,7 +20,8 @@ def removeNonAscii(s):
     return "".join(i for i in s if ord(i)<128)
 
 class Command(NoArgsCommand):
-    help = "Download new files representing one month of 990s, ignoring months we already have. Each quarter contains hundreds of thousands of filings; will take a while to run. "
+    help = "Download new files representing one month of 990s, ignoring months we already have. "\
+        "Each quarter contains hundreds of thousands of filings; will take a while to run. "
     #args = ''
     option_list = NoArgsCommand.option_list + (
         make_option('--start-year',
@@ -64,8 +65,6 @@ class Command(NoArgsCommand):
         
         tmp_debug = settings.DEBUG
         settings.DEBUG = False
-        transaction.enter_transaction_management()
-        transaction.managed(True)
         try:
             for year in range(start_year, end_year):
                 for quarter in range(4):
@@ -76,8 +75,6 @@ class Command(NoArgsCommand):
                     self.get_filing_list(year, quarter+1, reprocess=_reprocess)
         finally:
             settings.DEBUG = tmp_debug
-            transaction.commit()
-            transaction.leave_transaction_management()
             connection.close()
                 
     def get_filing_list(self, year, quarter, reprocess=False):

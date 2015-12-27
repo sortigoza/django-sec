@@ -24,10 +24,14 @@ class Namespace(models.Model):
     """
     
     name = models.CharField(
-        max_length=500,
+        # Causes MySQL error:
+        # Specified key was too long; max key length is 767 bytes
+        # Note, PostreSQL has much higher limits.
+        #max_length=255,
+        max_length=100,
         blank=False,
         null=False,
-        db_index=True,
+        #db_index=True,
         unique=True)
     
     class Meta:
@@ -42,7 +46,7 @@ class Unit(models.Model):
     """
     
     name = models.CharField(
-        max_length=200,
+        max_length=50,
         blank=False,
         null=False,
         db_index=True,
@@ -90,7 +94,7 @@ class Attribute(models.Model):
     namespace = models.ForeignKey('Namespace')
     
     name = models.CharField(
-        max_length=500,
+        max_length=200,
         blank=False,
         null=False,
         db_index=True)
@@ -205,7 +209,7 @@ class IndexFile(models.Model):
         null=False,
         db_index=True)
     
-    filename = models.CharField(max_length=200, blank=False, null=False)
+    filename = models.CharField(max_length=100, blank=False, null=False)
     
     total_rows = models.PositiveIntegerField(blank=True, null=True)
     

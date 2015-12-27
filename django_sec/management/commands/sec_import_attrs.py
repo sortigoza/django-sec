@@ -79,7 +79,7 @@ class Command(BaseCommand):
     
     def handle(self, **options):
         
-        self.dryrun = options['dryrun']
+#         self.dryrun = options['dryrun']
         self.force = options['force']
         self.verbose = options['verbose']
         

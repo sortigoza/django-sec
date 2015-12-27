@@ -58,9 +58,9 @@ class Command(BaseCommand):
             default=None),
         make_option('--quarter',
             default=None),
-        make_option('--dryrun',
-            action='store_true',
-            default=False),
+#         make_option('--dryrun',
+#             action='store_true',
+#             default=False),
         make_option('--force',
             action='store_true',
             default=False),
@@ -191,24 +191,24 @@ class Command(BaseCommand):
                 total_parts_complete=overall_current_count,
                 total_parts=overall_total_count,
             )
-            if not self.dryrun:
-                transaction.commit()
+#             if not self.dryrun:
+#                 transaction.commit()
     
     def run_process(self, status=None, **kwargs):
         tmp_debug = settings.DEBUG
         settings.DEBUG = False
-        transaction.enter_transaction_management()
-        transaction.managed(True)
+        #transaction.enter_transaction_management()
+        #transaction.managed(True)
         try:
             self.import_attributes(status=status, **kwargs)
         finally:
             settings.DEBUG = tmp_debug
-            if self.dryrun:
-                print 'This is a dryrun, so no changes were committed.'
-                transaction.rollback()
-            else:
-                transaction.commit()
-            transaction.leave_transaction_management()
+            #if self.dryrun:
+            #    print 'This is a dryrun, so no changes were committed.'
+            #    transaction.rollback()
+            #else:
+            #    transaction.commit()
+            #transaction.leave_transaction_management()
             connection.close()
     
     def import_attributes(self, status=None, **kwargs):
@@ -303,8 +303,8 @@ class Command(BaseCommand):
                 
                 if not i % commit_freq:
                     sys.stdout.flush()
-                    if not self.dryrun:
-                        transaction.commit()
+#                     if not self.dryrun:
+#                         transaction.commit()
                 
                 ifile.download(verbose=self.verbose)
                 #print 'xbrl link:',ifile.xbrl_link()
@@ -349,8 +349,8 @@ class Command(BaseCommand):
                                 #print '\rImporting attribute %i of %i.' % (j, sub_total),
                                 print_status(msg, count=i, total=total)
                                 #sys.stdout.flush()
-                                if not self.dryrun:
-                                    transaction.commit()
+#                                 if not self.dryrun:
+#                                     transaction.commit()
                                 
                             matches = re.findall('^\{([^\}]+)\}(.*)$', node.tag)
                             if matches:
@@ -420,8 +420,8 @@ class Command(BaseCommand):
                                 bulk_objects = []
                                 prior_keys.clear()
                                 
-                        if not self.dryrun:
-                            transaction.commit()
+#                         if not self.dryrun:
+#                             transaction.commit()
             #            print '\rImporting attribute %i of %i.' % (sub_total, sub_total),
             #            print
                         print_status('Importing attributes.', count=i, total=total)
@@ -437,8 +437,8 @@ class Command(BaseCommand):
                         
                         models.Unit.do_update()
                         
-                        if not self.dryrun:
-                            transaction.commit()
+#                         if not self.dryrun:
+#                             transaction.commit()
                     
                         break
                     

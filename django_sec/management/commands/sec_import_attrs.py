@@ -120,6 +120,7 @@ class Command(BaseCommand):
             processes = []
             self.status = Queue()
             for i, _ in enumerate(xrange(multi)):
+                print 'Starting process %i' % i
                 stripe = kwargs['stripe'] = '%i%i' % (i, multi)
                 kwargs['status'] = self.status
                 
@@ -200,7 +201,9 @@ class Command(BaseCommand):
         #transaction.enter_transaction_management()
         #transaction.managed(True)
         try:
+            print 'Running process:', kwargs
             self.import_attributes(status=status, **kwargs)
+            print 'Done process:', kwargs
         finally:
             settings.DEBUG = tmp_debug
             #if self.dryrun:
@@ -279,10 +282,13 @@ class Command(BaseCommand):
                     print>>sys.stderr, 'Warning: the company you specified with cik %s is not marked for loading.' % (self.cik,)
             
             if stripe is not None:
-                q = q.extra(where=['(("django_sec_index"."id" %%%% %i) = %i)' % (stripe_mod, stripe_num)])
+                #q = q.extra(where=['(("django_sec_index"."id" %%%% %i) = %i)' % (stripe_mod, stripe_num)])
+                q = q.extra(where=['((django_sec_index.id %%%% %i) = %i)' % (stripe_mod, stripe_num)])
                     
             #print_status('Finding total record count...')
+            #print 'query:', q.query
             total_count = total = q.count()
+            print 'total_count:', total_count
             
             if kwargs['show_pending']:
                 print '='*80
@@ -459,6 +465,7 @@ class Command(BaseCommand):
                         time.sleep(random.random()*5)
                     
         except Exception, e:
+            print 'Error: %s' % e
             ferr = StringIO()
             traceback.print_exc(file=ferr)
             error = ferr.getvalue()

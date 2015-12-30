@@ -37,5 +37,9 @@ setup(
         'Framework :: Django',
     ],
     zip_safe = False,
-    install_requires = ['Django>=1.4.0', 'lxml'],
+    install_requires = [
+        'Django>=1.4.0',
+        'lxml',
+        'python-dateutil>=2.4.2',
+    ],
 )

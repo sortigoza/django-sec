@@ -1,6 +1,8 @@
 import re
 import urllib2
 import time
+import dateutil.parser
+from datetime import date
 
 try:
     from fake_useragent import UserAgent
@@ -13,6 +15,15 @@ def get_user_agent():
         return ua.random
     else:
         return 'Python-urllib/2.7/Django-SEC'
+
+def str_to_date(s):
+    s = str(s).strip()
+    if not s:
+        return
+    dt = dateutil.parser.parse(s)
+    if not dt:
+        return
+    return date(dt.year, dt.month, dt.day)
 
 def lookup_cik(ticker, name=None):
     """

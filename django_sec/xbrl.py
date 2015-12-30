@@ -2,8 +2,10 @@ from datetime import date
 from lxml import etree
 from xbrl_fundamentals import FundamentantalAccountingConcepts
 import re
+import dateutil.parser
 
 import constants as c
+import utils
 
 class XBRL:
 
@@ -162,7 +164,8 @@ class XBRL:
                 node = self.getNode("//xbrli:context[@id='" + context_id + "']/xbrli:period/xbrli:instant")
             dt = None
             if node is not None and node.text:
-                dt = date(*map(int, node.text.split('-')))
+                #dt = date(*map(int, node.text.split('-')))
+                dt = utils.str_to_date(node.text)
             self._context_start_dates[context_id] = dt
         return self._context_start_dates[context_id]
 
@@ -171,7 +174,8 @@ class XBRL:
             node = self.getNode("//xbrli:context[@id='" + context_id + "']/xbrli:period/xbrli:endDate")
             dt = None
             if node is not None and node.text:
-                dt = date(*map(int, node.text.split('-')))
+                #dt = date(*map(int, node.text.split('-')))
+                dt = utils.str_to_date(node.text)
             self._context_end_dates[context_id] = dt
         return self._context_end_dates[context_id]
         

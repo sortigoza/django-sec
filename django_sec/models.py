@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import zipfile
 
 from django.db import models
@@ -17,6 +18,10 @@ from django_sec import xbrl
 
 import constants as c
 from settings import DATA_DIR
+
+def clean_unit_name(s):
+    s = re.sub(r'[^a-z0-9]+', '', str(s).strip().lower())
+    return s
 
 class Namespace(models.Model):
     """
@@ -40,10 +45,26 @@ class Namespace(models.Model):
     def __unicode__(self):
         return self.name
 
+class UnitManager(models.Manager):
+    
+    def get_by_natural_key(self, name, *true_unit_nk):
+        
+        true_unit = None
+        if true_unit_nk:
+            true_unit = Unit.objects.get_by_natural_key(*true_unit_nk)
+            
+        u, _ = Unit.objects.get_or_create(name=name)
+        u.true_unit = true_unit
+        u.save()
+        
+        return u
+
 class Unit(models.Model):
     """
     Represents a numeric unit.
     """
+    
+    objects = UnitManager()
     
     name = models.CharField(
         max_length=50,
@@ -74,10 +95,18 @@ class Unit(models.Model):
     def __unicode__(self):
         return self.name
     
+    def natural_key(self):
+        parts = (self.name,)
+        if self.true_unit != self:
+            parts += self.true_unit.natural_key()
+        return parts 
+        
     def save(self, *args, **kwargs):
-        if self.id:
-            self.true_unit = self.true_unit or self
-            self.master = self == self.true_unit
+#         if self.id:
+        assert self.name.strip()
+        self.true_unit = self.true_unit or self
+        self.master = self == self.true_unit
+        assert self.true_unit.master
         super(Unit, self).save(*args, **kwargs)
     
     @classmethod

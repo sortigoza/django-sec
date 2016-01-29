@@ -25,12 +25,29 @@ admin.site.register(
     models.Namespace,
     NamespaceAdmin)
 
+class UnitAliasInlineAdmin(admin.TabularInline):
+    
+    model = models.Unit
+    
+    extra = 0
+    max_num = 0
+    can_delete = False
+    
+    list_display = (
+        'name',
+    )
+    
+    readonly_fields = (
+        'name',
+    )
+
 class UnitAdmin(admin.ModelAdmin):
     
     form = forms.UnitChangeForm
     
     list_display = (
         'name',
+        'true_unit',
         'master',
     )
     
@@ -44,6 +61,10 @@ class UnitAdmin(admin.ModelAdmin):
     
     search_fields = (
         'name',
+    )
+    
+    inlines = (
+        UnitAliasInlineAdmin,
     )
 
 admin.site.register(

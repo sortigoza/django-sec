@@ -53,23 +53,6 @@ class Command(BaseCommand):
         total = qs.count()
         i = 0
         dups = set()
-#         for r in qs.iterator():
-#             i += 1
-#             print('\r%i of %i' % (i, total),
-#             sys.stdout.flush()
-#             
-#             clean_name = models.clean_unit_name(r.name)
-#             if r.name == clean_name:
-#                 r.true_unit = r
-#                 r.master = True
-#                 r.save()
-#             else:
-#                 true_unit, _ = models.Unit.objects.get_or_create(name=clean_name)
-#                 true_unit.true_unit = true_unit
-#                 true_unit.master = True
-#                 true_unit.save()
-#                 r.true_unit = true_unit
-#                 r.save()
 
         # Link all singular to plurals.
         qs = models.Unit.objects.filter(master=True)

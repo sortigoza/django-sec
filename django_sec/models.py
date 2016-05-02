@@ -104,11 +104,12 @@ class Unit(models.Model):
         return parts 
         
     def save(self, *args, **kwargs):
-#         if self.id:
         assert self.name.strip()
-        self.true_unit = self.true_unit or self
+        if self.id:
+            self.true_unit = self.true_unit or self
         self.master = self == self.true_unit
-        assert self.true_unit.master
+        if self.id:
+            assert self.true_unit.master
         super(Unit, self).save(*args, **kwargs)
     
     @classmethod

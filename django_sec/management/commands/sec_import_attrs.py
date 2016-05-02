@@ -391,6 +391,7 @@ class Command(BaseCommand):
                             if not attribute.load:
                                 continue
                             unit, _ = models.Unit.objects.get_or_create(name=node.attrib['unitRef'].strip())
+                            unit.save()
                             value = (node.text or '').strip()
                             if not value:
                                 continue

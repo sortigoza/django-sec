@@ -37,4 +37,7 @@ class Tests(TestCase):
     
     def test_unit(self):
         unit, _ = models.Unit.objects.get_or_create(name='U_iso4217USD')
+        # In Django >= 1.9, you can't set a self-referential field during creation.
+        unit.save()
+        self.assertTrue(unit.true_unit)
         

@@ -5,11 +5,11 @@ from django.core.urlresolvers import reverse
 
 try:
     from admin_steroids.queryset import ApproxCountQuerySet
-except ImportError, e:
+except ImportError as e:
     ApproxCountQuerySet = None
 
-import forms
-import models
+from . import forms
+from . import models
 
 class NamespaceAdmin(admin.ModelAdmin):
     

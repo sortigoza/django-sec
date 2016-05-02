@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import urllib
 import os
 import re
@@ -53,7 +55,7 @@ class Command(BaseCommand):
         dups = set()
 #         for r in qs.iterator():
 #             i += 1
-#             print '\r%i of %i' % (i, total),
+#             print('\r%i of %i' % (i, total),
 #             sys.stdout.flush()
 #             
 #             clean_name = models.clean_unit_name(r.name)
@@ -75,7 +77,7 @@ class Command(BaseCommand):
         i = 0
         for r in qs.iterator():
             i += 1
-            print '\r%i of %i' % (i, total),
+            sys.stdout.write('\r%i of %i' % (i, total))
             sys.stdout.flush()
             
             plural_qs = models.Unit.objects.filter(master=True).filter(Q(name=r.name+'s')|Q(name=r.name+'es')).exclude(id=r.id)
@@ -85,6 +87,6 @@ class Command(BaseCommand):
                 r.master = False
                 r.save()
 
-        print        
-        print '%i duplicates linked' % len(dups)
+        print()       
+        print('%i duplicates linked' % len(dups)
         

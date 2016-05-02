@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import urllib
 import os
 import re
@@ -120,7 +122,7 @@ class Command(BaseCommand):
             processes = []
             self.status = Queue()
             for i, _ in enumerate(xrange(multi)):
-                print 'Starting process %i' % i
+                print('Starting process %i' % i)
                 stripe = kwargs['stripe'] = '%i%i' % (i, multi)
                 kwargs['status'] = self.status
                 
@@ -139,7 +141,7 @@ class Command(BaseCommand):
                     if stripe not in self.start_times:
                         self.start_times[stripe] = time.time()
                     self.print_progress()
-            print 'All processes complete.'
+            print('All processes complete.')
         else:
             self.start_times[None] = time.time()
             self.run_process(**kwargs)
@@ -185,8 +187,8 @@ class Command(BaseCommand):
         for stripe, (current, total) in self.stripe_counts.iteritems():
             overall_current_count += current
             overall_total_count += total
-        #print 'overall_current_count:',overall_current_count
-        #print 'overall_total_count:',overall_total_count
+        #print('overall_current_count:',overall_current_count
+        #print('overall_total_count:',overall_total_count
         if overall_total_count and Job:
             Job.update_progress(
                 total_parts_complete=overall_current_count,
@@ -201,13 +203,13 @@ class Command(BaseCommand):
         #transaction.enter_transaction_management()
         #transaction.managed(True)
         try:
-            print 'Running process:', kwargs
+            print('Running process:', kwargs)
             self.import_attributes(status=status, **kwargs)
-            print 'Done process:', kwargs
+            print('Done process:', kwargs)
         finally:
             settings.DEBUG = tmp_debug
             #if self.dryrun:
-            #    print 'This is a dryrun, so no changes were committed.'
+            #    print('This is a dryrun, so no changes were committed.'
             #    transaction.rollback()
             #else:
             #    transaction.commit()
@@ -227,7 +229,7 @@ class Command(BaseCommand):
         sub_total = 0
         
         def print_status(message, count=None, total=None):
-            #print 'message:',message
+            #print('message:',message
             current_count = count or 0
             total_count = total or 0
             if status:
@@ -241,7 +243,7 @@ class Command(BaseCommand):
                     message,
                 ])
             else:
-                #print 'total_count:',total_count
+                #print('total_count:',total_count
                 self.progress[stripe] = (
                     current_count,
                     total_count,
@@ -286,13 +288,13 @@ class Command(BaseCommand):
                 q = q.extra(where=['((django_sec_index.id %%%% %i) = %i)' % (stripe_mod, stripe_num)])
                     
             #print_status('Finding total record count...')
-            #print 'query:', q.query
+            #print('query:', q.query
             total_count = total = q.count()
-            print 'total_count:', total_count
+            print('total_count:', total_count)
             
             if kwargs['show_pending']:
-                print '='*80
-                print '%i total pending records' % total_count
+                print('='*80)
+                print('%i total pending records' % total_count)
                 return
             
             print_status('%i total rows.' % (total,))
@@ -303,7 +305,7 @@ class Command(BaseCommand):
                 i += 1
                 current_count = i
                 
-                #print 'Processing index %s for (%i of %i)' % (ifile.filename, i, total)
+                #print('Processing index %s for (%i of %i)' % (ifile.filename, i, total)
                 msg = 'Processing index %s.' % (ifile.filename,)
                 print_status(msg, count=i, total=total)
                 
@@ -313,7 +315,7 @@ class Command(BaseCommand):
 #                         transaction.commit()
                 
                 ifile.download(verbose=self.verbose)
-                #print 'xbrl link:',ifile.xbrl_link()
+                #print('xbrl link:',ifile.xbrl_link()
                 
                 # Initialize XBRL parser and populate an attribute called fields with
                 # a dict of 50 common terms.
@@ -321,7 +323,7 @@ class Command(BaseCommand):
                 error = None
                 try:
                     x = ifile.xbrl()
-                except Exception, e:
+                except Exception as e:
                     ferr = StringIO()
                     traceback.print_exc(file=ferr)
                     error = ferr.getvalue()
@@ -352,7 +354,7 @@ class Command(BaseCommand):
                             j += 1
                             sub_current = j
                             if not j % commit_freq:
-                                #print '\rImporting attribute %i of %i.' % (j, sub_total),
+                                #print('\rImporting attribute %i of %i.' % (j, sub_total),
                                 print_status(msg, count=i, total=total)
                                 #sys.stdout.flush()
 #                                 if not self.dryrun:
@@ -396,9 +398,9 @@ class Command(BaseCommand):
                                 'Value too large, must be less than %i digits: %i %s' \
                                     % (c.MAX_QUANTIZE, len(value), repr(value))
                             
-                            #print attribute
+                            #print(attribute
                             models.Attribute.objects.filter(id=attribute.id).update(total_values_fresh=False)
-                            #print context_id,attribute.name,node.attrib['decimals'],unit,start_date,end_date,ifile.date
+                            #print(context_id,attribute.name,node.attrib['decimals'],unit,start_date,end_date,ifile.date
                             
                             if models.AttributeValue.objects.filter(company=company, attribute=attribute, start_date=start_date).exists():
                                 continue
@@ -428,7 +430,7 @@ class Command(BaseCommand):
                                 
 #                         if not self.dryrun:
 #                             transaction.commit()
-            #            print '\rImporting attribute %i of %i.' % (sub_total, sub_total),
+            #            print('\rImporting attribute %i of %i.' % (sub_total, sub_total),
             #            print
                         print_status('Importing attributes.', count=i, total=total)
                         
@@ -448,24 +450,24 @@ class Command(BaseCommand):
                     
                         break
                     
-                    except DatabaseError, e:
+                    except DatabaseError as e:
                         if retry+1 == maxretries:
                             raise
-                        print e, 'retry', retry
+                        print(e, 'retry', retry)
                         connection.close()
                         time.sleep(random.random()*5)
                     
-                    except TransactionRollbackError, e:
+                    except TransactionRollbackError as e:
                         if TransactionRollbackError.__name__ != 'TransactionRollbackError':
                             raise
                         if retry+1 == maxretries:
                             raise
-                        print e, 'retry', retry
+                        print(e, 'retry', retry)
                         connection.close()
                         time.sleep(random.random()*5)
                     
-        except Exception, e:
-            print 'Error: %s' % e
+        except Exception as e:
+            print('Error: %s' % e)
             ferr = StringIO()
             traceback.print_exc(file=ferr)
             error = ferr.getvalue()

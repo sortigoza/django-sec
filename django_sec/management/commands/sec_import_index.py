@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import urllib
 import os
 import re
@@ -95,15 +97,15 @@ class Command(NoArgsCommand):
         ifile.filename = fn
         
         if os.path.exists(fn) and reprocess:
-            print 'Deleting old file %s.' % fn
+            print('Deleting old file %s.' % fn)
             os.remove(fn)
         
         if not os.path.exists(fn):
-            print 'Downloading %s.' % (url,)
+            print('Downloading %s.' % (url,))
             try:
                 compressed_data = urllib.urlopen(url).read()
-            except IOError, e:
-                print 'Unable to download url: %s' % (e,)
+            except IOError as e:
+                print('Unable to download url: %s' % (e,))
                 return
             fileout = file(fn,'w')
             fileout.write(compressed_data)
@@ -116,7 +118,7 @@ class Command(NoArgsCommand):
         transaction.commit()
         
         # Extract the compressed file
-        print 'Opening index file %s.' % (fn,)
+        print('Opening index file %s.' % (fn,))
         zip = ZipFile(fn)
         zdata = zip.read('company.idx')
         #zdata = removeNonAscii(zdata)
@@ -133,9 +135,9 @@ class Command(NoArgsCommand):
         last_status = None
         #prior_keys = set(Index.objects.all().values_list('company__cik','date','filename').distinct())#Massive memory consumption
         prior_keys = set()
-        #print 'Found %i prior index keys.' % len(prior_keys)
+        #print('Found %i prior index keys.' % len(prior_keys)
         prior_ciks = set(Company.objects.all().values_list('cik', flat=True))
-        print 'Found %i prior ciks.' % len(prior_ciks)
+        print('Found %i prior ciks.' % len(prior_ciks))
         index_add_count = 0
         company_add_count = 0
         for r in lines[10:]: # Note, first 10 lines are useless headers.
@@ -144,7 +146,7 @@ class Command(NoArgsCommand):
                 continue
             if not last_status or ((datetime.now() - last_status).seconds >= status_secs):
             #if not last_status or not i % 100:
-                print '\rProcessing record %i of %i (%.02f%%).' % (i, total, float(i)/total*100),
+                sys.stdout.write('\rProcessing record %i of %i (%.02f%%).' % (i, total, float(i)/total*100))
                 sys.stdout.flush()
                 last_status = datetime.now()
                 IndexFile.objects.filter(id=ifile.id).update(processed_rows=i)
@@ -194,10 +196,10 @@ class Command(NoArgsCommand):
         IndexFile.objects.filter(id=ifile.id).update(processed=timezone.now())
         transaction.commit()
         
-        print '\rProcessing record %i of %i (%.02f%%).' % (total, total, 100),
-        print
-        print '%i new companies found.' % company_add_count
-        print '%i new indexes found.' % index_add_count
+        print('\rProcessing record %i of %i (%.02f%%).' % (total, total, 100))
+        print()
+        print('%i new companies found.' % company_add_count)
+        print('%i new indexes found.' % index_add_count)
         sys.stdout.flush()
         IndexFile.objects.filter(id=ifile.id).update(processed_rows=total)
         

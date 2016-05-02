@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from django_sec import xbrl
 import csv
 
@@ -26,7 +28,7 @@ class Command(NoArgsCommand):
         rows = cur.fetchall()
         for row in rows:
             cik = row[0]
-            print cik
+            print('cik:', cik)
             for year in range(2011,2014):
                 latest = Index.objects.filter(form='10-K',cik=cik,quarter__startswith=year).order_by('-date')
                 if len(latest):
@@ -34,7 +36,7 @@ class Command(NoArgsCommand):
                     latest.download()
                     x = latest.xbrl()
                     if x==None:
-                        print 'no xbrl for ', cik, year
+                        print('no xbrl for ', cik, year)
                         continue
                                         
                     d = {}

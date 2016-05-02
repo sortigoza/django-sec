@@ -1,8 +1,10 @@
 import re
-import urllib2
 import time
 import dateutil.parser
 from datetime import date
+
+import six
+from six.moves import urllib as urllib2
 
 try:
     from fake_useragent import UserAgent
@@ -34,8 +36,6 @@ def lookup_cik(ticker, name=None):
     # First try the SEC. In theory, should for all known symbols, even
     # deactivated ones. In practice, fails to work for many, even active ones.
     url = 'http://www.sec.gov/cgi-bin/browse-edgar?CIK={cik}&owner=exclude&Find=Find+Companies&action=getcompany'.format(cik=ticker)
-    #print 'url1:',url
-    #response = urllib2.urlopen(url)
     request = urllib2.Request(url=url, headers={'User-agent':get_user_agent()})
     response = urllib2.urlopen(request)
     data = response.read()
@@ -70,7 +70,7 @@ def lookup_cik(ticker, name=None):
     # Should work for all active symbols, but won't work for any deactive
     # symbols. 
     url = 'http://finance.yahoo.com/q/sec?s={symbol}+SEC+Filings'.format(symbol=ticker)
-    #print 'url2:',url
+    #print('url2:',url
 #    response = urllib2.urlopen(url)
     request = urllib2.Request(url=url, headers={'User-agent':get_user_agent()})
     response = urllib2.urlopen(request)

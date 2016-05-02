@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import re
@@ -16,8 +18,8 @@ except ImportError:
 
 from django_sec import xbrl
 
-import constants as c
-from settings import DATA_DIR
+from . import constants as c
+from .settings import DATA_DIR
 
 def clean_unit_name(s):
     s = re.sub(r'[^a-z0-9]+', '', str(s).strip().lower())
@@ -162,14 +164,14 @@ class Attribute(models.Model):
         for r in q.iterator():
             i += 1
 #            if not i % 100:
-#                print '\rRefreshing attribute %i of %i.' % (i, total),
+#                print('\rRefreshing attribute %i of %i.' % (i, total),
 #                sys.stdout.flush()
             total_values = AttributeValue.objects.filter(attribute__name=r.name).count()
             cls.objects.filter(id=r.id).update(
                 #total_values=r.values.all().count(),
                 total_values=total_values,
                 total_values_fresh=True)
-#        print '\rRefreshing attribute %i of %i.' % (total, total),
+#        print('\rRefreshing attribute %i of %i.' % (total, total),
 
 class AttributeValue(models.Model):
     
@@ -425,7 +427,7 @@ class Index(models.Model):
         try:
             return f[f_lower.find('<html>'):f_lower.find('</html>')+4]
         except:
-            print 'html tag not found'
+            print('html tag not found')
             return f
 
     def download(self, verbose=False):
@@ -443,8 +445,7 @@ class Index(models.Model):
         html_link = self.html_link()
         xbrl_link = self.xbrl_link()
         if verbose:
-            print 'html_link:',
-            print 'xbrl_link:',xbrl_link
+            print('xbrl_link:', xbrl_link)
             
 #        if not os.path.exists(html_link.split('/')[-1]):
 #            os.system('wget %s' % html_link)
@@ -464,14 +465,14 @@ class Index(models.Model):
         except:
             self.download()
         files = os.listdir('.')
-#        print 'files:',files
+#        print('files:',files
         archives = [elem for elem in files if elem.endswith('.zip')]
         if not archives:
             return None, None
         zf = zipfile.ZipFile(archives[0])
         #xml = sorted([elem for elem in files if elem.endswith('.xml')],key=len)
         xml = sorted([elem for elem in zf.namelist() if elem.endswith('.xml')], key=len)
-#        print 'xml:',xml
+#        print('xml:',xml
 #        sys.exit()
         if not len(xml):
             return None, None
@@ -480,9 +481,9 @@ class Index(models.Model):
 
     def xbrl(self):
         filepath, open_method = self.xbrl_localpath()
-#        print 'filepath:',filepath
+#        print('filepath:',filepath
         if not filepath:
-            print 'no xbrl found. this option is for 10-ks.'
+            print('no xbrl found. this option is for 10-ks.')
             return
         x = xbrl.XBRL(filepath, opener=open_method)
         x.fields['FiscalPeriod'] = x.fields['DocumentFiscalPeriodFocus']

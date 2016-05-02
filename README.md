@@ -63,3 +63,27 @@ Currently, this has only been tested to download and extract attributes from
 The commands support additional parameters and filters, such as to load data
 for specific companies or quarters. Run `python manage help sec_import_index`
 to see all options.
+
+Development
+-----------
+
+Tests require the Python development headers to be installed, which you can install on Ubuntu with:
+
+    sudo apt-get install python-dev python3-dev python3.4-dev
+
+To run unittests across multiple Python versions, install:
+
+    sudo apt-get install python3.4-minimal python3.4-dev python3.5-minimal python3.5-dev
+
+To run all [tests](http://tox.readthedocs.org/en/latest/):
+
+    export TESTNAME=; tox
+
+To run tests for a specific environment (e.g. Python 2.7 with Django 1.4):
+    
+    export TESTNAME=; tox -e py27-django15
+
+To run a specific test:
+    
+    export TESTNAME=.testname; tox -e py27-django15
+    

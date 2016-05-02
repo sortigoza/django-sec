@@ -40,4 +40,5 @@ class Tests(TestCase):
         # In Django >= 1.9, you can't set a self-referential field during creation.
         unit.save()
         self.assertTrue(unit.true_unit)
+        self.assertEqual(unit.true_unit, unit)
         

@@ -8,7 +8,6 @@ from zipfile import ZipFile
 import time
 from datetime import date, datetime, timedelta
 from optparse import make_option
-from StringIO import StringIO
 import traceback
 import random
 from multiprocessing import Process, Lock, Queue
@@ -71,5 +70,5 @@ class Command(BaseCommand):
                 r.save()
 
         print()       
-        print('%i duplicates linked' % len(dups)
+        print('%i duplicates linked' % len(dups))
         

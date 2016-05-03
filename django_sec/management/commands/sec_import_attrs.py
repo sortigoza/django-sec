@@ -8,11 +8,12 @@ from zipfile import ZipFile
 import time
 from datetime import date, datetime, timedelta
 from optparse import make_option
-from StringIO import StringIO
 import traceback
 import random
 from multiprocessing import Process, Lock, Queue
 import collections
+
+from six import StringIO
 
 from django.core.management.base import NoArgsCommand, BaseCommand
 from django.db import transaction, connection, IntegrityError, DatabaseError

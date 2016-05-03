@@ -42,3 +42,5 @@ class Tests(TestCase):
         self.assertTrue(unit.true_unit)
         self.assertEqual(unit.true_unit, unit)
         
+        call_command('sec_mark_units')
+        

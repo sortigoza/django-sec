@@ -13,7 +13,8 @@ import random
 from multiprocessing import Process, Lock, Queue
 import collections
 
-from six import StringIO
+import six
+from six import StringIO, string_types
 
 from django.core.management.base import BaseCommand
 from django.db import transaction, connection, IntegrityError, DatabaseError
@@ -40,7 +41,7 @@ def parse_stripe(stripe):
     stripe_num = None
     stripe_mod = None
     if stripe:
-        assert isinstance(stripe, basestring) and len(stripe) == 2
+        assert isinstance(stripe, string_types) and len(stripe) == 2
         stripe_num, stripe_mod = stripe
         stripe_num = int(stripe_num)
         stripe_mod = int(stripe_mod)
@@ -122,7 +123,7 @@ class Command(BaseCommand):
                 "Process count must be greater than 1 and a multiple of 2."
             processes = []
             self.status = Queue()
-            for i, _ in enumerate(xrange(multi)):
+            for i, _ in enumerate(six.moves.range(multi)):
                 print('Starting process %i' % i)
                 stripe = kwargs['stripe'] = '%i%i' % (i, multi)
                 kwargs['status'] = self.status

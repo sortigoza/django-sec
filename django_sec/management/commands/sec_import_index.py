@@ -107,7 +107,7 @@ class Command(BaseCommand):
             except IOError as e:
                 print('Unable to download url: %s' % e)
                 return
-            fileout = file(fn, 'w')
+            fileout = open(fn, 'w')
             fileout.write(compressed_data)
             fileout.close()
             ifile.downloaded = timezone.now()

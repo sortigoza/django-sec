@@ -62,7 +62,7 @@ def lookup_cik(ticker, name=None):
     name = ''.join(_ for _ in (name or '').strip() if ord(_) < 128)
     if name:
         name_parts = name.split(' ')
-        for i in xrange(len(name_parts)):
+        for i in six.moves.xrange(len(name_parts)):
             url = 'http://www.sec.gov/cgi-bin/cik.pl.c?company={company}'\
                 .format(company='+'.join(name_parts[:-(i+1)]))
 #            response = urllib2.urlopen(url)

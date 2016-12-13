@@ -275,7 +275,8 @@ class Company(models.Model):
     load = models.BooleanField(
         default=False,
         db_index=True,
-        help_text=_('If checked, all values for load-enabled attributes will be loaded for this company.'))
+        help_text=_('If checked, all values for load-enabled attributes '
+            'will be loaded for this company.'))
     
     min_date = models.DateField(
         blank=True,
@@ -393,25 +394,27 @@ class Index(models.Model):
     
     def xbrl_link(self):
         if self.form.startswith('10-K') or self.form.startswith('10-Q'):
-            id = self.filename.split('/')[-1][:-4]
-            return 'http://www.sec.gov/Archives/edgar/data/%s/%s/%s-xbrl.zip' % (self.company.cik, id.replace('-',''), id)
-        return None
+            _id = self.filename.split('/')[-1][:-4]
+            return 'http://www.sec.gov/Archives/edgar/data/%s/%s/%s-xbrl.zip' \
+                % (self.company.cik, id.replace('-', ''), _id)
+        return
         
     def html_link(self):
         return 'http://www.sec.gov/Archives/%s' % self.filename
 
     def index_link(self):
-        id = self.filename.split('/')[-1][:-4]
-        return 'http://www.sec.gov/Archives/edgar/data/%s/%s/%s-index.htm' % (self.company.cik, id.replace('-',''), id)
+        _id = self.filename.split('/')[-1][:-4]
+        return 'http://www.sec.gov/Archives/edgar/data/%s/%s/%s-index.htm' \
+            % (self.company.cik, id.replace('-', ''), _id)
         
     def txt(self):
         return self.filename.split('/')[-1]
         
     def localfile(self):
-        filename = '%s/%s/%s/%s' % (DATA_DIR, self.company.cik,self.txt()[:-4],self.txt())
+        filename = '%s/%s/%s/%s' % (DATA_DIR, self.company.cik, self.txt()[:-4], self.txt())
         if os.path.exists(filename):
             return filename
-        return None
+        return
         
     def localpath(self):
         return '%s/%s/%s/' % (DATA_DIR, self.company.cik, self.txt()[:-4])
@@ -422,12 +425,12 @@ class Index(models.Model):
     def html(self):
         filename = self.localfile()
         if not filename: 
-            return None
-        f = open(filename,'r').read()
+            return
+        f = open(filename, 'r').read()
         f_lower = f.lower()
         try:
-            return f[f_lower.find('<html>'):f_lower.find('</html>')+4]
-        except:
+            return f[f_lower.find('<html>'): f_lower.find('</html>')+4]
+        except IndexError:
             print('html tag not found')
             return f
 
@@ -463,7 +466,7 @@ class Index(models.Model):
     def xbrl_localpath(self):
         try:
             os.chdir(self.localpath())
-        except:
+        except OSError:
             self.download()
         files = os.listdir('.')
 #        print('files:',files
@@ -492,8 +495,7 @@ class Index(models.Model):
         x.fields['DocumentPeriodEndDate'] = x.fields['BalanceSheetDate']
         x.fields['PeriodStartDate'] = x.fields['IncomeStatementPeriodYTD']
         x.fields['SECFilingPage'] = self.index_link()
-        x.fields['LinkToXBRLInstance'] = self.xbrl_link() 
-
+        x.fields['LinkToXBRLInstance'] = self.xbrl_link()
         return x
         
     def ticker(self):

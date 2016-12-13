@@ -1,8 +1,8 @@
 import re
 import time
-import dateutil.parser
 from datetime import date
 
+import dateutil.parser
 import six
 from six.moves import urllib as urllib2
 
@@ -35,12 +35,18 @@ def lookup_cik(ticker, name=None):
     
     # First try the SEC. In theory, should for all known symbols, even
     # deactivated ones. In practice, fails to work for many, even active ones.
-    url = 'http://www.sec.gov/cgi-bin/browse-edgar?CIK={cik}&owner=exclude&Find=Find+Companies&action=getcompany'.format(cik=ticker)
+    url = (
+        'http://www.sec.gov/cgi-bin/browse-edgar?'
+        'CIK={cik}&'
+        'owner=exclude&'
+        'Find=Find+Companies&'
+        'action=getcompany'
+    ).format(cik=ticker)
     request = urllib2.Request(url=url, headers={'User-agent':get_user_agent()})
     response = urllib2.urlopen(request)
     data = response.read()
     try:
-        match = re.finditer('CIK=([0-9]+)', data).next()
+        match = re.finditer(r'CIK=([0-9]+)', data).next()
         return match.group().split('=')[-1]
     except StopIteration:
         pass
@@ -57,12 +63,13 @@ def lookup_cik(ticker, name=None):
     if name:
         name_parts = name.split(' ')
         for i in xrange(len(name_parts)):
-            url = 'http://www.sec.gov/cgi-bin/cik.pl.c?company={company}'.format(company='+'.join(name_parts[:-(i+1)]))
+            url = 'http://www.sec.gov/cgi-bin/cik.pl.c?company={company}'\
+                .format(company='+'.join(name_parts[:-(i+1)]))
 #            response = urllib2.urlopen(url)
             request = urllib2.Request(url=url, headers={'User-agent':get_user_agent()})
             response = urllib2.urlopen(request)
             data = response.read()
-            matches = re.findall('CIK=([0-9]+)', data)
+            matches = re.findall(r'CIK=([0-9]+)', data)
             if len(matches) == 1:
                 return matches[0]
     
@@ -76,8 +83,7 @@ def lookup_cik(ticker, name=None):
     response = urllib2.urlopen(request)
     data = response.read()
     try:
-        match = re.finditer('search/\?cik=([0-9]+)', data).next()
+        match = re.finditer(r'search/\?cik=([0-9]+)', data).next()
         return match.group().split('=')[-1]
     except StopIteration:
         pass
-    

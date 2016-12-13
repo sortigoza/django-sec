@@ -1,24 +1,48 @@
 from __future__ import print_function
 
-from django_sec import xbrl
+import os
 import csv
 
+from django_sec import xbrl
 from django_sec.models import *
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 
-import os
 import psycopg2
 
-
-
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "Put the 50+ common accounting terms from an arbitrary list of 10ks into a spreadsheet"
     
-    def handle_noargs(self, **options):
+    def handle_noargs(self, csv_fn, **options):
 
-        headers = ['EntityRegistrantName', 'EntityCentralIndexKey', 'EntityFilerCategory', 'TradingSymbol', 'FiscalYear', 'FiscalPeriod', 'DocumentType', 'PeriodStartDate', 'DocumentPeriodEndDate', 'Assets', 'CurrentAssets', 'NoncurrentAssets', 'LiabilitiesAndEquity', 'Liabilities', 'CurrentLiabilities', 'NoncurrentLiabilities', 'CommitmentsAndContingencies', 'TemporaryEquity', 'Equity', 'EquityAttributableToParent', 'EquityAttributableToNoncontrollingInterest', 'Revenues', 'CostOfRevenue', 'GrossProfit', 'OperatingExpenses', 'CostsAndExpenses', 'OtherOperatingIncome', 'OperatingIncomeLoss', 'NonoperatingIncomeLoss', 'InterestAndDebtExpense', 'NonoperatingIncomeLossPlusInterestAndDebtExpense', 'IncomeBeforeEquityMethodInvestments', 'IncomeFromEquityMethodInvestments', 'IncomeFromContinuingOperationsBeforeTax', 'IncomeTaxExpenseBenefit', 'IncomeFromContinuingOperationsAfterTax', 'IncomeFromDiscontinuedOperations', 'ExtraordaryItemsGainLoss', 'NetIncomeLoss', 'NetIncomeAttributableToParent', 'NetIncomeAttributableToNoncontrollingInterest', 'PreferredStockDividendsAndOtherAdjustments', 'NetIncomeAvailableToCommonStockholdersBasic', 'ComprehensiveIncome', 'OtherComprehensiveIncome', 'NetCashFlowsOperating', 'NetCashFlowsOperatingContinuing', 'NetCashFlowsOperatingDiscontinued', 'NetCashFlowsInvesting', 'NetCashFlowsInvestingContinuing', 'NetCashFlowsInvestingDiscontinued', 'NetCashFlowsFinancing', 'NetCashFlowsFinancingContinuing', 'NetCashFlowsFinancingDiscontinued', 'NetCashFlowsContinuing', 'NetCashFlowsDiscontinued', 'ExchangeGainsLosses', 'NetCashFlow', 'ComprehensiveIncomeAttributableToParent', 'ComprehensiveIncomeAttributableToNoncontrollingInterest', 'SGR', 'ROA', 'ROE', 'ROS', 'SECFilingPage', 'LinkToXBRLInstance']
+        headers = [
+            'EntityRegistrantName', 'EntityCentralIndexKey', 'EntityFilerCategory',
+            'TradingSymbol', 'FiscalYear', 'FiscalPeriod', 'DocumentType', 'PeriodStartDate',
+            'DocumentPeriodEndDate', 'Assets', 'CurrentAssets', 'NoncurrentAssets',
+            'LiabilitiesAndEquity', 'Liabilities', 'CurrentLiabilities', 'NoncurrentLiabilities',
+            'CommitmentsAndContingencies', 'TemporaryEquity', 'Equity',
+            'EquityAttributableToParent', 'EquityAttributableToNoncontrollingInterest', 'Revenues',
+            'CostOfRevenue', 'GrossProfit', 'OperatingExpenses', 'CostsAndExpenses',
+            'OtherOperatingIncome', 'OperatingIncomeLoss', 'NonoperatingIncomeLoss',
+            'InterestAndDebtExpense', 'NonoperatingIncomeLossPlusInterestAndDebtExpense',
+            'IncomeBeforeEquityMethodInvestments', 'IncomeFromEquityMethodInvestments',
+            'IncomeFromContinuingOperationsBeforeTax', 'IncomeTaxExpenseBenefit',
+            'IncomeFromContinuingOperationsAfterTax', 'IncomeFromDiscontinuedOperations',
+            'ExtraordaryItemsGainLoss', 'NetIncomeLoss', 'NetIncomeAttributableToParent',
+            'NetIncomeAttributableToNoncontrollingInterest',
+            'PreferredStockDividendsAndOtherAdjustments',
+            'NetIncomeAvailableToCommonStockholdersBasic', 'ComprehensiveIncome',
+            'OtherComprehensiveIncome', 'NetCashFlowsOperating',
+            'NetCashFlowsOperatingContinuing', 'NetCashFlowsOperatingDiscontinued',
+            'NetCashFlowsInvesting', 'NetCashFlowsInvestingContinuing',
+            'NetCashFlowsInvestingDiscontinued', 'NetCashFlowsFinancing',
+            'NetCashFlowsFinancingContinuing', 'NetCashFlowsFinancingDiscontinued',
+            'NetCashFlowsContinuing', 'NetCashFlowsDiscontinued', 'ExchangeGainsLosses',
+            'NetCashFlow', 'ComprehensiveIncomeAttributableToParent',
+            'ComprehensiveIncomeAttributableToNoncontrollingInterest', 'SGR', 'ROA', 'ROE',
+            'ROS', 'SECFilingPage', 'LinkToXBRLInstance',
+        ]
 
-        fout = csv.DictWriter(open('/home/luke/research/sec/django_sec/test.csv','w'),headers)
+        fout = csv.DictWriter(open(csv_fn, 'w'), headers)
         fout.writeheader()
 
         #this SQL is just a way of getting a list of particular CIKs I want
@@ -29,13 +53,17 @@ class Command(NoArgsCommand):
         for row in rows:
             cik = row[0]
             print('cik:', cik)
-            for year in range(2011,2014):
-                latest = Index.objects.filter(form='10-K',cik=cik,quarter__startswith=year).order_by('-date')
+            for year in range(2011, 2014):
+                latest = Index.objects.filter(
+                    form='10-K',
+                    cik=cik,
+                    quarter__startswith=year
+                ).order_by('-date')
                 if len(latest):
                     latest = latest[0]
                     latest.download()
                     x = latest.xbrl()
-                    if x==None:
+                    if x is None:
                         print('no xbrl for ', cik, year)
                         continue
                                         
@@ -52,6 +80,4 @@ class Command(NoArgsCommand):
                     d['SECFilingPage'] = latest.index_link()
                     d['LinkToXBRLInstance'] = latest.xbrl_link() 
                     
-                    
-                    fout.writerow( d )
-               
+                    fout.writerow(d)

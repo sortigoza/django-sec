@@ -15,7 +15,7 @@ import collections
 
 from six import StringIO
 
-from django.core.management.base import NoArgsCommand, BaseCommand
+from django.core.management.base import BaseCommand
 from django.db import transaction, connection, IntegrityError, DatabaseError
 from django.conf import settings
 from django.utils import timezone
@@ -41,7 +41,7 @@ def parse_stripe(stripe):
     stripe_mod = None
     if stripe:
         assert isinstance(stripe, basestring) and len(stripe) == 2
-        stripe_num,stripe_mod = stripe
+        stripe_num, stripe_mod = stripe
         stripe_num = int(stripe_num)
         stripe_mod = int(stripe_mod)
         assert stripe_num < stripe_mod
@@ -137,7 +137,8 @@ class Command(BaseCommand):
             while any(i.is_alive() for i in processes):
                 time.sleep(0.1)
                 while not self.status.empty():
-                    stripe, current, total, sub_current, sub_total, eta, message = self.status.get()
+                    stripe, current, total, sub_current, sub_total, eta, message = \
+                        self.status.get()
                     self.progress[stripe] = (current, total, sub_current, sub_total, eta, message)
                     if stripe not in self.start_times:
                         self.start_times[stripe] = time.time()
@@ -148,13 +149,15 @@ class Command(BaseCommand):
             self.run_process(**kwargs)
     
     def print_progress(self, clear=True, newline=True):
-        if self.last_progress_refresh and (datetime.now()-self.last_progress_refresh).seconds < 0.5:
+        td = datetime.now() - self.last_progress_refresh
+        if self.last_progress_refresh and td.seconds < 0.5:
             return
         bar_length = 10
         if clear:
             sys.stdout.write('\033[2J\033[H') #clear screen
             sys.stdout.write('Importing attributes\n')
-        for stripe, (current, total, sub_current, sub_total, eta, message) in sorted(self.progress.items()):
+        for stripe, msg_parts in sorted(self.progress.items()):
+            (current, total, sub_current, sub_total, eta, message) = msg_parts
             sub_status = ''
             if total:
                 if not eta:
@@ -177,7 +180,8 @@ class Command(BaseCommand):
             if sub_current and sub_total:
                 sub_status = '(subtask %s of %s) ' % (sub_current, sub_total)
             sys.stdout.write(
-                (('' if newline else '\r')+"%s [%s] %s of %s %s%s%% eta=%s: %s"+('\n' if newline else '')) \
+                (('' if newline else '\r') + \
+                "%s [%s] %s of %s %s%s%% eta=%s: %s"+('\n' if newline else '')) \
                     % (stripe, bar, current, total, sub_status, percent, eta, message))
         sys.stdout.flush()
         self.last_progress_refresh = datetime.now()
@@ -282,11 +286,12 @@ class Command(BaseCommand):
                 q = q.filter(company__cik=self.cik, company__load=True)
                 q2 = q2.filter(company__cik=self.cik)
                 if not q.count() and q2.count():
-                    print>>sys.stderr, 'Warning: the company you specified with cik %s is not marked for loading.' % (self.cik,)
+                    print(('Warning: the company you specified with cik %s is not '
+                        'marked for loading.') % (self.cik,), file=sys.stderr)
             
             if stripe is not None:
-                #q = q.extra(where=['(("django_sec_index"."id" %%%% %i) = %i)' % (stripe_mod, stripe_num)])
-                q = q.extra(where=['((django_sec_index.id %%%% %i) = %i)' % (stripe_mod, stripe_num)])
+                q = q.extra(
+                    where=['((django_sec_index.id %%%% %i) = %i)' % (stripe_mod, stripe_num)])
                     
             #print_status('Finding total record count...')
             #print('query:', q.query
@@ -301,22 +306,19 @@ class Command(BaseCommand):
             print_status('%i total rows.' % (total,))
             i = 0
             commit_freq = 100
-            print_status('%i indexes found for forms %s.' % (total, ', '.join(self.forms)), count=0, total=total)
+            print_status('%i indexes found for forms %s.' \
+                % (total, ', '.join(self.forms)), count=0, total=total)
             for ifile in q.iterator():
                 i += 1
                 current_count = i
                 
-                #print('Processing index %s for (%i of %i)' % (ifile.filename, i, total)
                 msg = 'Processing index %s.' % (ifile.filename,)
                 print_status(msg, count=i, total=total)
                 
                 if not i % commit_freq:
                     sys.stdout.flush()
-#                     if not self.dryrun:
-#                         transaction.commit()
                 
                 ifile.download(verbose=self.verbose)
-                #print('xbrl link:',ifile.xbrl_link()
                 
                 # Initialize XBRL parser and populate an attribute called fields with
                 # a dict of 50 common terms.
@@ -355,13 +357,12 @@ class Command(BaseCommand):
                             j += 1
                             sub_current = j
                             if not j % commit_freq:
-                                #print('\rImporting attribute %i of %i.' % (j, sub_total),
                                 print_status(msg, count=i, total=total)
                                 #sys.stdout.flush()
 #                                 if not self.dryrun:
 #                                     transaction.commit()
                                 
-                            matches = re.findall('^\{([^\}]+)\}(.*)$', node.tag)
+                            matches = re.findall(r'^\{([^\}]+)\}(.*)$', node.tag)
                             if matches:
                                 ns, attr_name = matches[0]
                             else:
@@ -391,7 +392,8 @@ class Command(BaseCommand):
                             )
                             if not attribute.load:
                                 continue
-                            unit, _ = models.Unit.objects.get_or_create(name=node.attrib['unitRef'].strip())
+                            unit, _ = models.Unit.objects.get_or_create(
+                                name=node.attrib['unitRef'].strip())
                             unit.save()
                             value = (node.text or '').strip()
                             if not value:
@@ -401,10 +403,13 @@ class Command(BaseCommand):
                                     % (c.MAX_QUANTIZE, len(value), repr(value))
                             
                             #print(attribute
-                            models.Attribute.objects.filter(id=attribute.id).update(total_values_fresh=False)
-                            #print(context_id,attribute.name,node.attrib['decimals'],unit,start_date,end_date,ifile.date
+                            models.Attribute.objects\
+                                .filter(id=attribute.id)\
+                                .update(total_values_fresh=False)
                             
-                            if models.AttributeValue.objects.filter(company=company, attribute=attribute, start_date=start_date).exists():
+                            if models.AttributeValue.objects\
+                            .filter(company=company, attribute=attribute, start_date=start_date)\
+                            .exists():
                                 continue
             
                             # Some attributes are listed multiple times in differently
@@ -441,7 +446,9 @@ class Command(BaseCommand):
                             bulk_objects = []
                             
                         ticker = ifile.ticker()
-                        models.Index.objects.filter(id=ifile.id).update(attributes_loaded=True, _ticker=ticker)
+                        models.Index.objects\
+                            .filter(id=ifile.id)\
+                            .update(attributes_loaded=True, _ticker=ticker)
                         
                         models.Attribute.do_update()
                         
@@ -476,4 +483,3 @@ class Command(BaseCommand):
             print_status('Fatal error: %s' % (error,))
         finally:
             connection.close()
-            

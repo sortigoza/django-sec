@@ -9,8 +9,7 @@ import time
 from datetime import date, datetime, timedelta
 from optparse import make_option
 
-from django.core.management.base import NoArgsCommand
-#from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand
 from django.db import transaction, connection
 from django.conf import settings
 from django.utils import timezone
@@ -19,13 +18,13 @@ from django.utils.encoding import force_text
 from django_sec.models import Company, Index, IndexFile, DATA_DIR
 
 def removeNonAscii(s):
-    return "".join(i for i in s if ord(i)<128)
+    return "".join(i for i in s if ord(i) < 128)
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "Download new files representing one month of 990s, ignoring months we already have. "\
         "Each quarter contains hundreds of thousands of filings; will take a while to run. "
     #args = ''
-    option_list = NoArgsCommand.option_list + (
+    option_list = BaseCommand.option_list + (
         make_option('--start-year',
             default=None),
         make_option('--end-year',
@@ -73,7 +72,8 @@ class Command(NoArgsCommand):
                     if target_quarter and quarter+1 != target_quarter:
                         continue
                     quarter_start = date(year, quarter*3+1, 1)
-                    _reprocess = reprocess or (quarter_start > (date.today() - timedelta(days=auto_reprocess_last_n_days)))
+                    cutoff_date = date.today() - timedelta(days=auto_reprocess_last_n_days)
+                    _reprocess = reprocess or (quarter_start > cutoff_date)
                     self.get_filing_list(year, quarter+1, reprocess=_reprocess)
         finally:
             settings.DEBUG = tmp_debug
@@ -83,7 +83,7 @@ class Command(NoArgsCommand):
         """
         Gets the list of filings and download locations for the given year and quarter.
         """
-        url='ftp://ftp.sec.gov/edgar/full-index/%d/QTR%d/company.zip' % (year, quarter)
+        url = 'ftp://ftp.sec.gov/edgar/full-index/%d/QTR%d/company.zip' % (year, quarter)
     
         # Download the data and save to a file
         if not os.path.isdir(DATA_DIR):
@@ -105,9 +105,9 @@ class Command(NoArgsCommand):
             try:
                 compressed_data = urllib.urlopen(url).read()
             except IOError as e:
-                print('Unable to download url: %s' % (e,))
+                print('Unable to download url: %s' % e)
                 return
-            fileout = file(fn,'w')
+            fileout = file(fn, 'w')
             fileout.write(compressed_data)
             fileout.close()
             ifile.downloaded = timezone.now()
@@ -119,8 +119,8 @@ class Command(NoArgsCommand):
         
         # Extract the compressed file
         print('Opening index file %s.' % (fn,))
-        zip = ZipFile(fn)
-        zdata = zip.read('company.idx')
+        zipf = ZipFile(fn)
+        zdata = zipf.read('company.idx')
         #zdata = removeNonAscii(zdata)
         
         # Parse the fixed-length fields
@@ -133,7 +133,6 @@ class Command(NoArgsCommand):
         total = len(lines)
         IndexFile.objects.filter(id=ifile.id).update(total_rows=total)
         last_status = None
-        #prior_keys = set(Index.objects.all().values_list('company__cik','date','filename').distinct())#Massive memory consumption
         prior_keys = set()
         #print('Found %i prior index keys.' % len(prior_keys)
         prior_ciks = set(Company.objects.all().values_list('cik', flat=True))
@@ -145,8 +144,8 @@ class Command(NoArgsCommand):
             if not reprocess and ifile.processed_rows and i < ifile.processed_rows:
                 continue
             if not last_status or ((datetime.now() - last_status).seconds >= status_secs):
-            #if not last_status or not i % 100:
-                sys.stdout.write('\rProcessing record %i of %i (%.02f%%).' % (i, total, float(i)/total*100))
+                sys.stdout.write(
+                    '\rProcessing record %i of %i (%.02f%%).' % (i, total, float(i)/total*100))
                 sys.stdout.flush()
                 last_status = datetime.now()
                 IndexFile.objects.filter(id=ifile.id).update(processed_rows=i)

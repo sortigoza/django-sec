@@ -1,6 +1,8 @@
 Django-SEC
 ==========
 
+[<img src="https://secure.travis-ci.org/chrisspen/django-sec.png?branch=master" alt="Build Status">](https://travis-ci.org/chrisspen/django-sec)
+
 This is a Django app that downloads all SEC filings from the EDGAR database
 into your local database. It provides an admin interface to allow you to
 control which indexes and attributes are loaded as well as inspect downloaded
@@ -15,7 +17,7 @@ Installation
 
 Install the package using pip via:
 
-    pip install https://github.com/chrisspen/django-sec/archive/master.zip
+    pip install django-sec
 
 then add `django_sec` to your `INSTALLED_APPS` and run:
 

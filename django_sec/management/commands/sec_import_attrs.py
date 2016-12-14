@@ -16,6 +16,7 @@ import collections
 import six
 from six import StringIO, string_types
 
+import django
 from django.core.management.base import BaseCommand
 from django.db import transaction, connection, IntegrityError, DatabaseError
 from django.conf import settings
@@ -48,38 +49,59 @@ def parse_stripe(stripe):
         assert stripe_num < stripe_mod
     return stripe_num, stripe_mod
 
-class Command(BaseCommand):
-    help = "Shows data from filings."
-    args = ''
-    option_list = BaseCommand.option_list + (
-        make_option('--cik',
+def get_options(parser=None):
+    make_opt = make_option
+    if parser:
+        make_opt = parser.add_argument
+    return [
+        make_opt('--cik',
             default=None),
-        make_option('--forms',
+        make_opt('--forms',
             default='10-K,10-Q'),
-        make_option('--start-year',
+        make_opt('--start-year',
             default=None),
-        make_option('--end-year',
+        make_opt('--end-year',
             default=None),
-        make_option('--quarter',
+        make_opt('--quarter',
             default=None),
-#         make_option('--dryrun',
+#         make_opt('--dryrun',
 #             action='store_true',
 #             default=False),
-        make_option('--force',
+        make_opt('--force',
             action='store_true',
             default=False),
-        make_option('--verbose',
+        make_opt('--verbose',
             action='store_true',
             default=False),
-        make_option('--multi',
+        make_opt('--multi',
             dest='multi',
             default=0,
             help='The number of processes to use. Must be a multiple of 2.'),
-        make_option('--show-pending',
+        make_opt('--show-pending',
             action='store_true',
             default=False,
             help='If given, will only report the number of pending records to process then exit.'),
-    )
+    ]
+
+class Command(BaseCommand):
+    help = "Shows data from filings."
+    args = ''
+    option_list = getattr(BaseCommand, 'option_list', ()) + tuple(get_options())
+        
+    def create_parser(self, prog_name, subcommand):
+        """
+        For ``Django>=1.10``
+        Create and return the ``ArgumentParser`` which extends ``BaseCommand`` parser with
+        chroniker extra args and will be used to parse the arguments to this command.
+        """
+        from distutils.version import StrictVersion # pylint: disable=E0611
+        parser = super(Command, self).create_parser(prog_name, subcommand)
+        version_threshold = StrictVersion('1.10')
+        current_version = StrictVersion(django.get_version(django.VERSION))
+        if current_version >= version_threshold:
+            get_options(parser)                
+            self.add_arguments(parser)
+        return parser
     
     def handle(self, **options):
         

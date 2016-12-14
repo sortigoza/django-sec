@@ -9,10 +9,11 @@ from django.core.management.base import BaseCommand
 
 import psycopg2
 
+#TODO:remove? deprecated?
 class Command(BaseCommand):
     help = "Put the 50+ common accounting terms from an arbitrary list of 10ks into a spreadsheet"
     
-    def handle_noargs(self, csv_fn, **options):
+    def handle(self, csv_fn, **options):
 
         headers = [
             'EntityRegistrantName', 'EntityCentralIndexKey', 'EntityFilerCategory',

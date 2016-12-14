@@ -9,6 +9,7 @@ import time
 from datetime import date, datetime, timedelta
 from optparse import make_option
 
+import django
 from django.core.management.base import BaseCommand
 from django.db import transaction, connection
 from django.conf import settings
@@ -20,29 +21,50 @@ from django_sec.models import Company, Index, IndexFile, DATA_DIR
 def removeNonAscii(s):
     return "".join(i for i in s if ord(i) < 128)
 
+def get_options(parser=None):
+    make_opt = make_option
+    if parser:
+        make_opt = parser.add_argument
+    return [
+        make_opt('--start-year',
+            default=None),
+        make_opt('--end-year',
+            default=None),
+        make_opt('--quarter',
+            default=None),
+        make_opt('--delete-prior-indexes',
+            action='store_true',
+            default=False),
+        make_opt('--reprocess',
+            action='store_true',
+            default=False),
+        make_opt('--auto-reprocess-last-n-days',
+            default=90,
+            help='The number of days to automatically redownload and reprocess index files.'),
+    ]
+
 class Command(BaseCommand):
     help = "Download new files representing one month of 990s, ignoring months we already have. "\
         "Each quarter contains hundreds of thousands of filings; will take a while to run. "
     #args = ''
-    option_list = BaseCommand.option_list + (
-        make_option('--start-year',
-            default=None),
-        make_option('--end-year',
-            default=None),
-        make_option('--quarter',
-            default=None),
-        make_option('--delete-prior-indexes',
-            action='store_true',
-            default=False),
-        make_option('--reprocess',
-            action='store_true',
-            default=False),
-        make_option('--auto-reprocess-last-n-days',
-            default=90,
-            help='The number of days to automatically redownload and reprocess index files.'),
-    )
+    option_list = getattr(BaseCommand, 'option_list', ()) + tuple(get_options())
+        
+    def create_parser(self, prog_name, subcommand):
+        """
+        For ``Django>=1.10``
+        Create and return the ``ArgumentParser`` which extends ``BaseCommand`` parser with
+        chroniker extra args and will be used to parse the arguments to this command.
+        """
+        from distutils.version import StrictVersion # pylint: disable=E0611
+        parser = super(Command, self).create_parser(prog_name, subcommand)
+        version_threshold = StrictVersion('1.10')
+        current_version = StrictVersion(django.get_version(django.VERSION))
+        if current_version >= version_threshold:
+            get_options(parser)
+            self.add_arguments(parser)
+        return parser
     
-    def handle_noargs(self, **options):
+    def handle(self, **options):
         
         start_year = options['start_year']
         if start_year:

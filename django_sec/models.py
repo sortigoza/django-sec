@@ -396,7 +396,7 @@ class Index(models.Model):
         if self.form.startswith('10-K') or self.form.startswith('10-Q'):
             _id = self.filename.split('/')[-1][:-4]
             return 'http://www.sec.gov/Archives/edgar/data/%s/%s/%s-xbrl.zip' \
-                % (self.company.cik, id.replace('-', ''), _id)
+                % (self.company.cik, _id.replace('-', ''), _id)
         return
         
     def html_link(self):
@@ -405,7 +405,7 @@ class Index(models.Model):
     def index_link(self):
         _id = self.filename.split('/')[-1][:-4]
         return 'http://www.sec.gov/Archives/edgar/data/%s/%s/%s-index.htm' \
-            % (self.company.cik, id.replace('-', ''), _id)
+            % (self.company.cik, _id.replace('-', ''), _id)
         
     def txt(self):
         return self.filename.split('/')[-1]

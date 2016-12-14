@@ -37,10 +37,16 @@ class DisableMigrations(object):
 
     def __getitem__(self, item):
         return "notmigrations"
-SOUTH_TESTS_MIGRATE = False # <= Django 1.8
+#SOUTH_TESTS_MIGRATE = False # Use syncdb <= Django 1.8
+SOUTH_TESTS_MIGRATE = True # Use migrate
 #if django.VERSION > (1, 8, 0): # > Django 1.8
-if django.VERSION > (1, 7, 0): # > Django 1.8 
-    MIGRATION_MODULES = DisableMigrations()
+# if django.VERSION > (1, 7, 0): # > Django 1.8 
+#     MIGRATION_MODULES = DisableMigrations()
+
+if django.VERSION < (1, 7, 0):
+    SOUTH_MIGRATION_MODULES = {
+        'django_sec': 'django_sec.south_migrations',
+    }
 
 USE_TZ = True
 

@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import urllib
+#import urllib
 import os
 import re
 import sys
@@ -15,6 +15,10 @@ from django.db import transaction, connection
 from django.conf import settings
 from django.utils import timezone
 from django.utils.encoding import force_text
+from django.db.transaction import TransactionManagementError
+
+import six
+from six.moves.urllib.request import urlopen
 
 from django_sec.models import Company, Index, IndexFile, DATA_DIR
 
@@ -41,6 +45,8 @@ def get_options(parser=None):
         make_opt('--auto-reprocess-last-n-days',
             default=90,
             help='The number of days to automatically redownload and reprocess index files.'),
+        make_opt('--max-lines',
+            default=0),
     ]
 
 class Command(BaseCommand):
@@ -65,6 +71,8 @@ class Command(BaseCommand):
         return parser
     
     def handle(self, **options):
+        
+        max_lines = int(options['max_lines'])
         
         start_year = options['start_year']
         if start_year:
@@ -96,15 +104,26 @@ class Command(BaseCommand):
                     quarter_start = date(year, quarter*3+1, 1)
                     cutoff_date = date.today() - timedelta(days=auto_reprocess_last_n_days)
                     _reprocess = reprocess or (quarter_start > cutoff_date)
-                    self.get_filing_list(year, quarter+1, reprocess=_reprocess)
+                    self.get_filing_list(
+                        year,
+                        quarter+1,
+                        reprocess=_reprocess,
+                        max_lines=max_lines)
         finally:
             settings.DEBUG = tmp_debug
             connection.close()
                 
-    def get_filing_list(self, year, quarter, reprocess=False):
+    def get_filing_list(self, year, quarter, reprocess=False, max_lines=None):
         """
         Gets the list of filings and download locations for the given year and quarter.
         """
+        
+        def commit():
+            try:
+                transaction.commit()
+            except TransactionManagementError:
+                pass
+        
         url = 'ftp://ftp.sec.gov/edgar/full-index/%d/QTR%d/company.zip' % (year, quarter)
     
         # Download the data and save to a file
@@ -125,11 +144,11 @@ class Command(BaseCommand):
         if not os.path.exists(fn):
             print('Downloading %s.' % (url,))
             try:
-                compressed_data = urllib.urlopen(url).read()
+                compressed_data = urlopen(url).read()
             except IOError as e:
                 print('Unable to download url: %s' % e)
                 return
-            fileout = open(fn, 'w')
+            fileout = open(fn, 'wb')
             fileout.write(compressed_data)
             fileout.close()
             ifile.downloaded = timezone.now()
@@ -137,7 +156,7 @@ class Command(BaseCommand):
         if not ifile.downloaded:
             ifile.downloaded = timezone.now()
         ifile.save()
-        transaction.commit()
+        commit()
         
         # Extract the compressed file
         print('Opening index file %s.' % (fn,))
@@ -150,6 +169,11 @@ class Command(BaseCommand):
         bulk_indexes = []
         bulk_commit_freq = 1000
         status_secs = 3
+        
+        # In Python3, default type is now bytes, so we have to convert back to string.
+        if not isinstance(zdata, six.string_types):
+            zdata = zdata.decode()
+            
         lines = zdata.split('\n')
         i = 0
         total = len(lines)
@@ -207,7 +231,11 @@ class Command(BaseCommand):
                     bulk_companies = []
                 Index.objects.bulk_create(bulk_indexes)
                 bulk_indexes = []
-                transaction.commit()
+                commit()
+            
+            # Mainly used during unittesting to limit processing.
+            if max_lines and i >= max_lines:
+                break
                 
         if bulk_indexes:
             if len(bulk_companies):
@@ -215,7 +243,7 @@ class Command(BaseCommand):
                 bulk_companies = []
             Index.objects.bulk_create(bulk_indexes)
         IndexFile.objects.filter(id=ifile.id).update(processed=timezone.now())
-        transaction.commit()
+        commit()
         
         print('\rProcessing record %i of %i (%.02f%%).' % (total, total, 100))
         print()
@@ -223,4 +251,3 @@ class Command(BaseCommand):
         print('%i new indexes found.' % index_add_count)
         sys.stdout.flush()
         IndexFile.objects.filter(id=ifile.id).update(processed_rows=total)
-        

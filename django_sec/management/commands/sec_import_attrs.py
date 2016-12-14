@@ -172,8 +172,8 @@ class Command(BaseCommand):
             self.run_process(**kwargs)
     
     def print_progress(self, clear=True, newline=True):
-        td = datetime.now() - self.last_progress_refresh
-        if self.last_progress_refresh and td.seconds < 0.5:
+        if self.last_progress_refresh \
+        and (datetime.now() - self.last_progress_refresh).seconds < 0.5:
             return
         bar_length = 10
         if clear:
@@ -212,7 +212,7 @@ class Command(BaseCommand):
         # Update job.
         overall_current_count = 0
         overall_total_count = 0
-        for stripe, (current, total) in self.stripe_counts.iteritems():
+        for stripe, (current, total) in six.iteritems(self.stripe_counts):
             overall_current_count += current
             overall_total_count += total
         #print('overall_current_count:',overall_current_count
@@ -499,10 +499,11 @@ class Command(BaseCommand):
                         time.sleep(random.random()*5)
                     
         except Exception as e:
-            print('Error: %s' % e)
+            print('Error extracting attributes: %s' % e)
             ferr = StringIO()
             traceback.print_exc(file=ferr)
             error = ferr.getvalue()
+            print('Fatal error: %s' % error)
             print_status('Fatal error: %s' % (error,))
         finally:
             connection.close()

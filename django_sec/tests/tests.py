@@ -1,8 +1,7 @@
 from __future__ import print_function
 
 import os
-import datetime
-from datetime import timedelta
+from datetime import timedelta, date
 import time
 import socket
 import threading
@@ -71,11 +70,32 @@ class Tests(TestCase):
             print('Tax rate',
                 x.GetFactValue('us-gaap:EffectiveIncomeTaxRateContinuingOperations', 'Duration'))
     
-    def _test_sec_import_attrs(self):
-        call_command('sec_import_attrs')
-    
-    def _test_sec_import_index(self):
-        call_command('sec_import_index')
+    def test_sec_import_index_attrs(self):
+        
+        # Download index file.
+        out = six.StringIO()
+        ret = call_command(
+            'sec_import_index',
+            start_year=str(date.today().year-1),
+            max_lines='20',
+            quarter='1',
+            traceback=True,
+            stdout=out)
+        out = out.getvalue()
+        print(out)
+        self.assertTrue('error' not in out.lower())
+        
+        # Extract attributes from all downloaded indexes.
+        out = six.StringIO()
+        call_command(
+            'sec_import_attrs',
+            start_year=str(date.today().year-1),
+            verbose=True,
+            traceback=True,
+            stdout=out)
+        out = out.getvalue()
+        print(out)
+        self.assertTrue('error' not in out.lower())
     
     def _test_sec_xbrl_to_csv(self):
         call_command('sec_xbrl_to_csv')

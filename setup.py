@@ -19,10 +19,10 @@ def get_reqs(*fns):
     return lst
     
 setup(
-    name = "django-sec",
-    version = django_sec.__version__,
-    packages = find_packages(),
-#    package_data = {
+    name="django-sec",
+    version=django_sec.__version__,
+    packages=find_packages(),
+#    package_data={
 #        'django_sec': [
 #            'templates/*.*',
 #            'templates/*/*.*',
@@ -32,13 +32,13 @@ setup(
 #            'static/*/*/*.*',
 #        ],
 #    },
-    author = "Chris Spencer",
-    author_email = "chrisspen@gmail.com",
-    description = "Parse XBRL filings from the SEC's EDGAR in Python",
-    license = "LGPL",
-    url = "https://github.com/chrisspen/django-sec",
+    author="Chris Spencer",
+    author_email="chrisspen@gmail.com",
+    description="Parse XBRL filings from the SEC's EDGAR in Python",
+    license="LGPL",
+    url="https://github.com/chrisspen/django-sec",
     #https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers = [
+    classifiers=[
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
@@ -56,7 +56,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Framework :: Django',
     ],
-    zip_safe = False,
+    zip_safe=False,
     install_requires=get_reqs('pip-requirements-min-django.txt', 'pip-requirements.txt'),
     tests_require=get_reqs('pip-requirements-test.txt'),
 )

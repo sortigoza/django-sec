@@ -1,0 +1,4 @@
+requirements:
+  - pip-requirements.txt
+  - pip-requirements-min-django.txt
+  - pip-requirements-test.txt

@@ -86,7 +86,14 @@ class Tests(TestCase):
         print(out)
         self.assertTrue('error' not in out.lower())
         
-        shutil.copy('django_sec/fixtures/company_2016_1.zip', '/tmp/django_sec/company_2016_1.zip')
+        _fn = '/tmp/django_sec/company_2016_1.zip'
+        try:
+            os.remove(_fn)
+        except OSError:
+            pass
+        self.assertTrue(not os.path.isfile(_fn))
+        shutil.copy('django_sec/fixtures/company_2016_1.zip', _fn)
+        self.assertTrue(os.path.isfile(_fn))
         
         # Extract attributes from all downloaded indexes.
         out = six.StringIO()

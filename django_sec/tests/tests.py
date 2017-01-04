@@ -7,6 +7,7 @@ import socket
 import threading
 from functools import cmp_to_key
 import warnings
+import shutil
 
 import six
 
@@ -76,7 +77,7 @@ class Tests(TestCase):
         out = six.StringIO()
         ret = call_command(
             'sec_import_index',
-            start_year=str(date.today().year-1),
+            start_year='2016',#str(date.today().year-1),
             max_lines='20',
             quarter='1',
             traceback=True,
@@ -84,6 +85,8 @@ class Tests(TestCase):
         out = out.getvalue()
         print(out)
         self.assertTrue('error' not in out.lower())
+        
+        shutil.copy('django_sec/fixtures/company_2016_1.zip', '/tmp/django_sec/company_2016_1.zip')
         
         # Extract attributes from all downloaded indexes.
         out = six.StringIO()

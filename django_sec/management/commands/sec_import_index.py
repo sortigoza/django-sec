@@ -47,6 +47,9 @@ def get_options(parser=None):
             help='The number of days to automatically redownload and reprocess index files.'),
         make_opt('--max-lines',
             default=0),
+        make_opt('--dryrun',
+            action='store_true',
+            default=False),
     ]
 
 class Command(BaseCommand):
@@ -71,6 +74,8 @@ class Command(BaseCommand):
         return parser
     
     def handle(self, **options):
+        
+        self.dryrun = options['dryrun']
         
         max_lines = int(options['max_lines'])
         
@@ -140,6 +145,9 @@ class Command(BaseCommand):
         if os.path.exists(fn) and reprocess:
             print('Deleting old file %s.' % fn)
             os.remove(fn)
+        
+        if self.dryrun:
+            return
         
         if not os.path.exists(fn):
             print('Downloading %s.' % (url,))

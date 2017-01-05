@@ -81,6 +81,9 @@ class Tests(TestCase):
             max_lines='20',
             quarter='1',
             traceback=True,
+            # We have to use dryrun, and not test the actual download and process code
+            # because the SEC ftp servers are too intermittent.
+            dryrun=True,
             stdout=out)
         out = out.getvalue()
         print(out)

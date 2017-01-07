@@ -1,16 +1,13 @@
 from __future__ import print_function
 
-import urllib
-import os
 import re
 import sys
-from zipfile import ZipFile
 import time
 from datetime import date, datetime, timedelta
 from optparse import make_option
 import traceback
 import random
-from multiprocessing import Process, Lock, Queue
+from multiprocessing import Process, Queue
 import collections
 
 import six
@@ -18,12 +15,12 @@ from six import StringIO, string_types
 
 import django
 from django.core.management.base import BaseCommand
-from django.db import transaction, connection, IntegrityError, DatabaseError
+from django.db import connection, DatabaseError
 from django.conf import settings
 from django.utils import timezone
 
 from django_sec import models
-from django_sec.models import DATA_DIR, c
+from django_sec.models import c
 
 try:
     from psycopg2.extensions import TransactionRollbackError

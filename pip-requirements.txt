@@ -1,3 +1,4 @@
 python-dateutil>=2.2
 lxml
 six>=1.7.2
+wget==3.2

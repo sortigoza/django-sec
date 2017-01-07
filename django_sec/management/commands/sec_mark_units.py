@@ -1,37 +1,14 @@
 from __future__ import print_function
 
-import urllib
-import os
-import re
 import sys
-from zipfile import ZipFile
-import time
-from datetime import date, datetime, timedelta
 from optparse import make_option
-import traceback
-import random
-from multiprocessing import Process, Lock, Queue
-import collections
 
 import django
 from django.core.management.base import BaseCommand
-from django.db import transaction, connection, IntegrityError, DatabaseError
-from django.db.models import Q, F
+from django.db.models import Q
 from django.conf import settings
-from django.utils import timezone
 
 from django_sec import models
-from django_sec.models import DATA_DIR, c
-
-try:
-    from psycopg2.extensions import TransactionRollbackError
-except ImportError:
-    TransactionRollbackError = Exception
-
-try:
-    from chroniker.models import Job
-except ImportError:
-    Job = None
 
 def get_options(parser=None):
     make_opt = make_option

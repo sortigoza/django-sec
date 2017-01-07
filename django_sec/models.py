@@ -1,14 +1,15 @@
 from __future__ import print_function
 
 import os
-import sys
 import re
 import zipfile
 
+# from six.moves.urllib.request import urlopen
+import wget
+
 from django.db import models
 from django.db.models import Min, Max
-from django.conf import settings
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
 try:
     from admin_steroids.utils import StringWithTitle
@@ -450,16 +451,16 @@ class Index(models.Model):
         xbrl_link = self.xbrl_link()
         if verbose:
             print('xbrl_link:', xbrl_link)
-            
-#        if not os.path.exists(html_link.split('/')[-1]):
-#            os.system('wget %s' % html_link)
         
         if xbrl_link:
             if not os.path.exists(xbrl_link.split('/')[-1]):
-                if verbose:
-                    os.system('wget %s' % xbrl_link)
-                else:
-                    os.system('wget --quiet %s' % xbrl_link)
+                #urlopen(xbrl_link)
+                wget.download(xbrl_link)
+
+#                 if verbose:
+                    #os.system('wget %s' % xbrl_link)
+#                 else:
+                    #os.system('wget --quiet %s' % xbrl_link)
                 # Don't to this. It wastes disk space. Just read the ZIP directly.
                 #os.system('unzip *.zip')
 

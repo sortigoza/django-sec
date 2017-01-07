@@ -1,8 +1,6 @@
-from datetime import date
 import re
 
 from lxml import etree
-import dateutil.parser
 
 from .xbrl_fundamentals import FundamentantalAccountingConcepts
 from . import constants as c

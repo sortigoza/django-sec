@@ -1,13 +1,11 @@
 from __future__ import print_function
 
-import os
 import csv
 
-from django_sec import xbrl
-from django_sec.models import *
 from django.core.management.base import BaseCommand
-
 import psycopg2
+
+from django_sec.models import *
 
 #TODO:remove? deprecated?
 class Command(BaseCommand):

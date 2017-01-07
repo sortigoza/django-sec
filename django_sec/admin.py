@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
@@ -101,7 +100,14 @@ class AttributeAdmin(admin.ModelAdmin):
     )
     
     def queryset(self, *args, **kwargs):
-        qs = super(AttributeAdmin, self).queryset(*args, **kwargs)
+        # Deprecated in Django 1.7.
+        return self.get_queryset(*args, **kwargs)
+        
+    def get_queryset(self, *args, **kwargs):
+        try:
+            qs = super(AttributeAdmin, self).get_queryset(*args, **kwargs)
+        except AttributeError:
+            qs = super(AttributeAdmin, self).queryset(*args, **kwargs)
         if ApproxCountQuerySet:
             qs = qs._clone(klass=ApproxCountQuerySet)
         return qs
@@ -160,7 +166,14 @@ class AttributeValueAdmin(admin.ModelAdmin):
     )
     
     def queryset(self, *args, **kwargs):
-        qs = super(AttributeValueAdmin, self).queryset(*args, **kwargs)
+        # Deprecated in Django 1.7.
+        return self.get_queryset(*args, **kwargs)
+    
+    def get_queryset(self, *args, **kwargs):
+        try:
+            qs = super(AttributeValueAdmin, self).get_queryset(*args, **kwargs)
+        except AttributeError:
+            qs = super(AttributeValueAdmin, self).queryset(*args, **kwargs)
         if ApproxCountQuerySet:
             qs = qs._clone(klass=ApproxCountQuerySet)
         return qs
@@ -208,7 +221,7 @@ class CompanyAdmin(admin.ModelAdmin):
     search_fields = (
         'cik',
         'name',
-        '_ticker',
+        #'filings___ticker',
     )
     
     readonly_fields = (
@@ -229,7 +242,14 @@ class CompanyAdmin(admin.ModelAdmin):
         return True
     
     def queryset(self, *args, **kwargs):
-        qs = super(CompanyAdmin, self).queryset(*args, **kwargs)
+        # Deprecated in Django 1.7.
+        return self.get_queryset(*args, **kwargs)
+        
+    def get_queryset(self, *args, **kwargs):
+        try:
+            qs = super(CompanyAdmin, self).get_queryset(*args, **kwargs)
+        except AttributeError:
+            qs = super(CompanyAdmin, self).queryset(*args, **kwargs)
         if ApproxCountQuerySet:
             qs = qs._clone(klass=ApproxCountQuerySet)
         return qs
@@ -292,7 +312,14 @@ class IndexFileAdmin(admin.ModelAdmin):
     )
     
     def queryset(self, *args, **kwargs):
-        qs = super(IndexFileAdmin, self).queryset(*args, **kwargs)
+        # Deprecated in Django 1.7.
+        return self.get_queryset(*args, **kwargs)
+    
+    def get_queryset(self, *args, **kwargs):
+        try:
+            qs = super(IndexFileAdmin, self).get_queryset(*args, **kwargs)
+        except AttributeError:
+            qs = super(IndexFileAdmin, self).queryset(*args, **kwargs)
         if ApproxCountQuerySet:
             qs = qs._clone(klass=ApproxCountQuerySet)
         return qs
@@ -328,6 +355,7 @@ class IndexAdmin(admin.ModelAdmin):
     search_fields = (
         'filename',
         'company__name',
+        '_ticker',
     )
     
     list_filter = (
@@ -349,7 +377,14 @@ class IndexAdmin(admin.ModelAdmin):
     )
     
     def queryset(self, *args, **kwargs):
-        qs = super(IndexAdmin, self).queryset(*args, **kwargs)
+        # Deprecated in Django 1.7.
+        return self.get_queryset(*args, **kwargs)
+    
+    def get_queryset(self, *args, **kwargs):
+        try:
+            qs = super(IndexAdmin, self).get_queryset(*args, **kwargs)
+        except AttributeError:
+            qs = super(IndexAdmin, self).queryset(*args, **kwargs)
         if ApproxCountQuerySet:
             qs = qs._clone(klass=ApproxCountQuerySet)
         return qs

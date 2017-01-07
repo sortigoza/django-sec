@@ -1,11 +1,8 @@
 from __future__ import print_function
 
-#import urllib
 import os
-import re
 import sys
 from zipfile import ZipFile
-import time
 from datetime import date, datetime, timedelta
 from optparse import make_option
 

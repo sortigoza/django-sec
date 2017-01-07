@@ -1,28 +1,18 @@
 from __future__ import print_function
 
 import os
-from datetime import timedelta, date
-import time
+from datetime import date
 import socket
-import threading
-from functools import cmp_to_key
 import warnings
 import shutil
 
 import six
 
-import django
 from django.core.management import call_command
-from django.core import mail
 from django.test import TestCase
-from django.test.client import Client
-from django.utils import timezone
 from django.contrib.auth.models import User
-from django.conf import settings
 
 from django_sec import models
-from django_sec import utils
-from django_sec import constants as c
 
 warnings.simplefilter('error', RuntimeWarning)
 
@@ -121,3 +111,48 @@ class Tests(TestCase):
         self.assertEqual(unit.true_unit, unit)
         
         call_command('sec_mark_units')
+
+    def test_search(self):
+        #client = Client()
+        user = User.objects.create(username='testuser', is_active=True, is_staff=True, is_superuser=True)
+        user.set_password('12345')
+        user.save()
+        #self.client.force_login(user)
+        self.client.login(username=user.username, password='12345')
+        
+        response = self.client.get('/admin/django_sec/company/')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/company/?q=abc')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/index/')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/index/?q=abc')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/attribute/')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/attribute/?q=abc')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/attributevalue/')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/attributevalue/?q=abc')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/namespace/')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/namespace/?q=abc')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/unit/')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get('/admin/django_sec/unit/?q=abc')
+        self.assertEqual(response.status_code, 200)
+        

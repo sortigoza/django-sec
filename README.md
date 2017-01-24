@@ -3,7 +3,7 @@ Django-SEC
 
 [![](https://img.shields.io/pypi/v/django-sec.svg)](https://pypi.python.org/pypi/django-sec) [![Build Status](https://img.shields.io/travis/chrisspen/django-sec.svg?branch=master)](https://travis-ci.org/chrisspen/django-sec) [![](https://pyup.io/repos/github/chrisspen/django-sec/shield.svg)](https://pyup.io/repos/github/chrisspen/django-sec)
 
-This is a Django app that downloads all SEC filings from the EDGAR database
+This is a Django app that downloads all SEC filings from the [EDGAR database](https://www.sec.gov/edgar/searchedgar/accessing-edgar-data.htm)
 into your local database. It provides an admin interface to allow you to
 control which indexes and attributes are loaded as well as inspect downloaded
 data.

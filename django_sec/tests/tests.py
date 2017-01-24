@@ -1,10 +1,10 @@
 from __future__ import print_function
 
-import os
+# import os
 from datetime import date
 import socket
 import warnings
-import shutil
+# import shutil
 
 import six
 
@@ -63,6 +63,10 @@ class Tests(TestCase):
     
     def test_sec_import_index_attrs(self):
         
+        self.assertEqual(models.Index.objects.all().count(), 0)
+        self.assertEqual(models.Company.objects.all().count(), 0)
+        self.assertEqual(models.Attribute.objects.all().count(), 0)
+        
         # Download index file.
         out = six.StringIO()
         call_command(
@@ -71,22 +75,30 @@ class Tests(TestCase):
             max_lines='20',
             quarter='1',
             traceback=True,
-            # We have to use dryrun, and not test the actual download and process code
-            # because the SEC ftp servers are too intermittent.
             dryrun=False,
             stdout=out)
         out = out.getvalue()
         print(out)
         self.assertTrue('error' not in out.lower())
         
-        _fn = '/tmp/django_sec/company_2016_1.zip'
-        try:
-            os.remove(_fn)
-        except OSError:
-            pass
-        self.assertTrue(not os.path.isfile(_fn))
-        shutil.copy('django_sec/fixtures/company_2016_1.zip', _fn)
-        self.assertTrue(os.path.isfile(_fn))
+        # The index import creates company records and index records for each company.
+        self.assertTrue(models.Index.objects.all().count() > 0)
+        self.assertTrue(models.Company.objects.all().count() > 0)
+        self.assertEqual(models.Attribute.objects.all().count(), 0)
+        self.assertEqual(models.AttributeValue.objects.all().count(), 0)
+        
+        # However, by default, companies aren't marked to download any attributes.
+        self.assertTrue(models.Company.objects.filter(load=True).count() == 0)
+        self.assertEqual(models.Attribute.objects.filter(load=True).count(), 0)
+        
+#         _fn = '/tmp/django_sec/company_2016_1.zip'
+#         try:
+#             os.remove(_fn)
+#         except OSError:
+#             pass
+#         self.assertTrue(not os.path.isfile(_fn))
+#         shutil.copy('django_sec/fixtures/company_2016_1.zip', _fn)
+#         self.assertTrue(os.path.isfile(_fn))
         
         # Extract attributes from all downloaded indexes.
         out = six.StringIO()
@@ -99,6 +111,28 @@ class Tests(TestCase):
         out = out.getvalue()
         print(out)
         self.assertTrue('error' not in out.lower())
+        
+        # No company or attribute was marked to load, so nothing should have been created.
+        self.assertEqual(models.Attribute.objects.all().count(), 0)
+        self.assertEqual(models.AttributeValue.objects.all().count(), 0)
+        
+        # Mark companies for loading attributes.
+        models.Company.objects.all().update(load=True)
+        # Extract attributes from all downloaded indexes.
+        out = six.StringIO()
+        call_command(
+            'sec_import_attrs',
+            start_year=str(date.today().year-1),
+            verbose=True,
+            traceback=True,
+            stdout=out)
+        out = out.getvalue()
+        print(out)
+        self.assertTrue('error' not in out.lower())
+        
+        # Many attribute and attribute value records should have been loaded.
+        self.assertTrue(models.Attribute.objects.all().count() > 0)
+        self.assertTrue(models.AttributeValue.objects.all().count() > 0)
     
     def _test_sec_xbrl_to_csv(self):
         call_command('sec_xbrl_to_csv')

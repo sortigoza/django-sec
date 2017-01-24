@@ -281,8 +281,7 @@ class Command(BaseCommand):
         
         stripe_num, stripe_mod = parse_stripe(stripe)
         if stripe:
-            print_status('Striping with number %i and modulus %i.' \
-                % (stripe_num, stripe_mod))
+            print_status('Striping with number %i and modulus %i.' % (stripe_num, stripe_mod))
         
         try:
             # Get a file from the index.
@@ -292,11 +291,12 @@ class Command(BaseCommand):
             # .download() explicitly.
             q = models.Index.objects.filter(
                 year__gte=self.start_year,
-                year__lte=self.end_year)
+                year__lte=self.end_year,
+                company__load__exact=True)
             if not self.force:
                 q = q.filter(
-                    attributes_loaded__exact=0,#False,
-                    valid__exact=1,#True,
+                    attributes_loaded__exact=False,
+                    valid__exact=True,
                 )
             if self.forms:
                 q = q.filter(form__in=self.forms)
@@ -421,15 +421,10 @@ class Command(BaseCommand):
                             assert len(value.split('.')[0]) <= c.MAX_QUANTIZE, \
                                 'Value too large, must be less than %i digits: %i %s' \
                                     % (c.MAX_QUANTIZE, len(value), repr(value))
+
+                            models.Attribute.objects.filter(id=attribute.id).update(total_values_fresh=False)
                             
-                            #print(attribute
-                            models.Attribute.objects\
-                                .filter(id=attribute.id)\
-                                .update(total_values_fresh=False)
-                            
-                            if models.AttributeValue.objects\
-                            .filter(company=company, attribute=attribute, start_date=start_date)\
-                            .exists():
+                            if models.AttributeValue.objects.filter(company=company, attribute=attribute, start_date=start_date).exists():
                                 continue
             
                             # Some attributes are listed multiple times in differently

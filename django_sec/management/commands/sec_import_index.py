@@ -126,7 +126,8 @@ class Command(BaseCommand):
             except TransactionManagementError:
                 pass
         
-        url = 'ftp://ftp.sec.gov/edgar/full-index/%d/QTR%d/company.zip' % (year, quarter)
+        #url = 'ftp://ftp.sec.gov/edgar/full-index/%d/QTR%d/company.zip' % (year, quarter)
+        url = 'https://www.sec.gov/Archives/edgar/full-index/%d/QTR%d/company.zip' % (year, quarter)
     
         # Download the data and save to a file
         if not os.path.isdir(DATA_DIR):

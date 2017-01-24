@@ -65,7 +65,7 @@ class Tests(TestCase):
         
         # Download index file.
         out = six.StringIO()
-        ret = call_command(
+        call_command(
             'sec_import_index',
             start_year='2016',#str(date.today().year-1),
             max_lines='20',
@@ -73,7 +73,7 @@ class Tests(TestCase):
             traceback=True,
             # We have to use dryrun, and not test the actual download and process code
             # because the SEC ftp servers are too intermittent.
-            dryrun=True,
+            dryrun=False,
             stdout=out)
         out = out.getvalue()
         print(out)

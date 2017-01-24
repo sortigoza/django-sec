@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import re
 import zipfile
 
@@ -160,20 +161,22 @@ class Attribute(models.Model):
     
     @classmethod
     def do_update(cls, *args, **kwargs):
+        verbose = kwargs.pop('verbose', False)
         q = cls.objects.filter(total_values_fresh=False).only('id', 'name')
         total = q.count()
         i = 0
         for r in q.iterator():
             i += 1
-#            if not i % 100:
-#                print('\rRefreshing attribute %i of %i.' % (i, total),
-#                sys.stdout.flush()
+            if verbose and (i == 1 or not i % 100 or i == total):
+                sys.stdout.write('\rRefreshing attribute %i of %i.' % (i, total))
+                sys.stdout.flush()
             total_values = AttributeValue.objects.filter(attribute__name=r.name).count()
             cls.objects.filter(id=r.id).update(
                 #total_values=r.values.all().count(),
                 total_values=total_values,
                 total_values_fresh=True)
-#        print('\rRefreshing attribute %i of %i.' % (total, total),
+        if verbose:
+            print('\n')
 
 class AttributeValue(models.Model):
     
@@ -444,10 +447,10 @@ class Index(models.Model):
         d = self.localpath()
         if not os.path.isdir(d):
             os.makedirs(d)
-            
+
         os.chdir(self.localpath())
         
-        html_link = self.html_link()
+#         html_link = self.html_link()
         xbrl_link = self.xbrl_link()
         if verbose:
             print('xbrl_link:', xbrl_link)

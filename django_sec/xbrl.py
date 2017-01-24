@@ -199,10 +199,10 @@ class XBRL:
         # Uses the concept ASSETS to find the correct instance context
         # This finds the Context ID for that end date (has correct <instant>
         # date plus has no dimensions):    
-        oNodelist2 = self.getNodeList(
-            "//us-gaap:Assets | "
-            "//us-gaap:AssetsCurrent | "
-            "//us-gaap:LiabilitiesAndStockholdersEquity")
+#         oNodelist2 = self.getNodeList(
+#             "//us-gaap:Assets | "
+#             "//us-gaap:AssetsCurrent | "
+#             "//us-gaap:LiabilitiesAndStockholdersEquity")
              
         ContextForInstants = UseContext
         self.fields['ContextForInstants'] = ContextForInstants
@@ -210,13 +210,13 @@ class XBRL:
         ###This finds the duration context
         ###This may work incorrectly for fiscal year ends because the dates cross calendar years
         #Get context ID of durations and the start date for the database table
-        oNodelist2 = self.getNodeList(
-            "//us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease | "
-            "//us-gaap:CashPeriodIncreaseDecrease | "
-            "//us-gaap:NetIncomeLoss | "
-            "//dei:DocumentPeriodEndDate")
+#         oNodelist2 = self.getNodeList(
+#             "//us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease | "
+#             "//us-gaap:CashPeriodIncreaseDecrease | "
+#             "//us-gaap:NetIncomeLoss | "
+#             "//dei:DocumentPeriodEndDate")
 
-        StartDate = "ERROR"
+        #StartDate = "ERROR"
         StartDateYTD = "2099-01-01"
         UseContext = "ERROR"
         

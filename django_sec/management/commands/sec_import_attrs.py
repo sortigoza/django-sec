@@ -243,12 +243,12 @@ class Command(BaseCommand):
     
     def import_attributes(self, status=None, **kwargs):
         stripe = kwargs.get('stripe')
-        reraise = kwargs.get('reraise')
+#         reraise = kwargs.get('reraise')
         
-        current_count = 0
+        current_count = 0 # pylint: disable=unused-variable
         total_count = 0
-        fatal_errors = False
-        fatal_error = None
+#         fatal_errors = False
+#         fatal_error = None
         estimated_completion_datetime = None
         sub_current = 0
         sub_total = 0
@@ -368,7 +368,7 @@ class Command(BaseCommand):
             #            print'Year:', x.fields['FiscalYear']
                         company = ifile.company
                         max_text_len = 0
-                        unique_attrs = set()
+#                         unique_attrs = set()
                         bulk_objects = []
                         prior_keys = set()
                         j = sub_total = 0

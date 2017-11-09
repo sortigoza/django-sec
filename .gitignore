@@ -1,4 +1,3 @@
-local_settings.py
 *cheatsheet*
 *.DS_Store
 
@@ -32,3 +31,6 @@ lib64
 /.pydevproject
 /.settings
 /.tox/
+
+
+/data/

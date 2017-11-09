@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  database:
+    image: "mysql"
+    restart: always
+    environment:
+        MYSQL_ROOT_PASSWORD: password123
+        MYSQL_DATABASE: django_sec
+    volumes:
+      - "./data:/var/lib/mysql"
+    ports:
+      - 3306:3306
+
+  django_sec:
+    container_name: django_sec
+    image: "sortigoza/django_sec"
+    build: "."
+    entrypoint: ["python", "secapp/manage.py", "runserver", "0.0.0.0:8080"]
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+    links:
+        - database:database
+
+
+# docker cp djangosec_database_1:/var/lib/mysql ./data # Backup container with no volume
+# python manage.py runserver 0.0.0.0:8080
+# python manage.py createsuperuser
